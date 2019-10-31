@@ -1,0 +1,982 @@
+<template>
+    <view class="index">
+      <!-- 搜索框 -->
+      <view class="search">
+        <view class="search_selectArea" bind:tap="changekq">{{KQname}}<text wx:if='{{!KQname}}'>考区</text>
+          <image src='../icon/location.png' class="icon-location" />
+          <image src='../icon/arrow_down.png' class="icon-arrow_down" />
+        </view>
+        <navigator class="search_selectBox" url='/pages/searchSchool'>
+        搜索大学
+        <image class="icon-search" src='../icon/search.png'/>
+        </navigator>
+      </view>
+      <!-- 选择考区 -->
+      <view class="modal">
+        <view class="modal-mark" catch:tap='closeModal()' wx-if='{{getModal}}'>
+        </view>
+        <view class="modal-content" wx-if='{{getModal}}'>
+          <view class="modal-content-title">{{title}}</view>
+          <view class="modal-content-provinces">
+            <block wx:for='{{modalData}}' wx:key='index'>
+              <view data-provid='{{item.typeId}}' bindtap='selectProvince({{item.typeId}})' class="{{ item.selected  ? 'active' : ''}}">
+                {{item.type}}
+              </view>
+            </block>
+          </view>
+          <button class="modal-content-btn" bindtap='submitProvinces()'>确定</button>
+        </view>
+      </view>
+      <!-- 筛选栏 -->
+      <view class="filterTab">
+        <!-- 透明背景 -->
+        <view class="{{isOpacity ? 'bg' : ''}}"  bindtap='closeTab' ></view>
+        <view class="tab-head" bindtap='showBg'>
+            <view class="tabs-item {{ tabsActiveIndex[0] ? 'active' : '' }}" bind:tap='switchTabsHandle({{0}})'>
+              <text><text wx:if="{{!checkedName[0]}}">所在地</text><text wx:if='{{checkedName[0]}}'>{{ checkedName[0] }}</text><text class="icon {{ tabsActiveIndex[0] ? 'iconActive' : '' }}"></text></text>
+            </view>
+
+            <view class="tabs-item {{ tabsActiveIndex[1] ? 'active' : '' }}" bind:tap='switchTabsHandle({{1}})'>
+              <text><text wx:if='{{!checkedName[1]}}'>学校类型</text><text wx:if='{{checkedName[1]}}'>{{ checkedName[1] }}</text><text class="icon {{ tabsActiveIndex[1] ? 'iconActive' : '' }}"></text></text>
+            </view>
+
+            <view class="tabs-item {{ tabsActiveIndex[2] ? 'active' : '' }}" bind:tap='switchTabsHandle({{2}})'>
+              <text><text wx:if='{{!checkedName[2]}}'>重点院校</text><text wx:if='{{checkedName[2]}}'>{{ checkedName[2] }}</text><text class="icon {{ tabsActiveIndex[2] ? 'iconActive' : '' }}"></text></text>
+            </view>
+
+            <view class="tabs-item {{ tabsActiveIndex[3] ? 'active' : '' }}" bind:tap='switchTabsHandle({{3}})'>
+              <text><text wx:if='{{!checkedName[3]}}'>批次</text><text wx:if='{{checkedName[3]}}'>{{ checkedName[3] }}</text><text class="icon {{ tabsActiveIndex[3] ? 'iconActive' : '' }}"></text></text>
+            </view>
+
+        </view>
+        <view class="tabs-body">
+          <block wx:for='{{showTabBody}}' wx:key='index'>
+            <view class="tabs-content" wx:if='{{showTabBody[index]}}'>
+              <block wx:for='{{tabData[index]}}' wx:key='indexData' wx:for-index='indexData'>
+                <view class="option {{ item.selected  ? 'selected' : ''}}" bind:tap='selectThisPart({{item}},{{index}},{{indexData}})'>{{item.type}}</view>
+              </block>
+              <view class="tabs-tips">
+                <view class="checkMore">单选</view>
+                <button class="sure" bind:tap='submitData({{index}})' wx:if='{{checkedName[index]}}'>确定</button>
+              </view>
+            </view>
+          </block>
+        </view>
+      </view>
+
+      <!-- 学校列表 -->
+      <scroll-view scroll-y="true" style="white-space: nowrap;width: 100%;height:90.5%;position:absolute; top:100rpx; left:0rpx; background-color:#f2f5f7;" bindscrolltolower='loadOtherSchool' enable-back-to-top>
+        <view class="schoolList">
+          <!-- 正常不筛选 -->
+          <block wx:for='{{schoolInfoList}}' wx:key='index'  wx:if='{{!schoolInfoList == []}}'>
+            <navigator class="schoolInfo" url="/pages/schoolDetails?name={{item.name}}&cid={{item.cid}}&is211={{item.is211}}&is985={{item.is985}}&level={{item.level}}&img={{item.img}}&typeid={{item.typeid}}&isDoubleA={{item.isDoubleA}}&kq={{KQprovid}}&kqname={{KQname}}">
+              <view class="Info_left">
+                <image class="schoolLogo" src='https://img.baokaodaxue.com{{item.img}}' lazy-load/>
+              </view>
+              <view class="Info_right">
+                <view class="schoolName">{{item.name}}</view>
+                <view class="schoolTags">
+                  <text class="tag keyTag" wx:if="{{item.is985 == '1' ? true : false}}">985</text>
+                  <text class="tag keyTag" wx:if="{{item.is211 == '1' ? true : false}}">211</text>
+                  <text class="tag keyTag" wx:if="{{item.isDoubleA == '1' ? true : false}}">双一流</text>
+                  <text class="tag">{{item.level == 1 ? '本科' : '专科'}}</text>
+                  <text class="tag">{{item.typeid}}</text>
+                </view>
+                <view class="schoolCity">{{item.location}}</view>
+              </view>
+            </navigator>
+          </block>
+          <!-- 筛选 -->
+          <!-- 一项 -->
+          <block wx:for='{{screen}}' wx:key='index' wx:if='{{!screen == []}}'>
+            <navigator class="schoolInfo"  url="/pages/schoolDetails?name={{item.name}}&cid={{item.cid}}&is211={{item.is211}}&is985={{item.is985}}&level={{item.level}}&img={{item.img}}&typeid={{item.typeid}}&isDoubleA={{item.isDoubleA}}&kq={{KQprovid}}&kqname={{KQname}}">
+              <view class="Info_left">
+                <image class="schoolLogo" src='https://img.baokaodaxue.com{{item.img}}' lazy-load/>
+              </view>
+              <view class="Info_right">
+                <view class="schoolName">{{item.name}}</view>
+                <view class="schoolTags">
+                  <text class="tag keyTag" wx:if="{{item.is985 == '1' ? true : false}}">985</text>
+                  <text class="tag keyTag" wx:if="{{item.is211 == '1' ? true : false}}">211</text>
+                  <text class="tag keyTag" wx:if="{{item.isDoubleA == '1' ? true : false}}">双一流</text>
+                  <text class="tag">{{item.level == 1 ? '本科' : '专科'}}</text>
+                  <text class="tag">{{item.typeid}}</text>
+                </view>
+                <view class="schoolCity">{{item.location}}</view>
+              </view>
+            </navigator>
+          </block>
+          <!-- 两项 -->
+          <block wx:for='{{screenTwo}}' wx:key='index' wx:if='{{!screenTwo == []}}'>
+            <navigator class="schoolInfo"  url="/pages/schoolDetails?name={{item.name}}&cid={{item.cid}}&is211={{item.is211}}&is985={{item.is985}}&level={{item.level}}&img={{item.img}}&typeid={{item.typeid}}&isDoubleA={{item.isDoubleA}}&kq={{KQprovid}}&kqname={{KQname}}">
+              <view class="Info_left">
+                <image class="schoolLogo" src='https://img.baokaodaxue.com{{item.img}}' lazy-load/>
+              </view>
+              <view class="Info_right">
+                <view class="schoolName">{{item.name}}</view>
+                <view class="schoolTags">
+                  <text class="tag keyTag" wx:if="{{item.is985 == '1' ? true : false}}">985</text>
+                  <text class="tag keyTag" wx:if="{{item.is211 == '1' ? true : false}}">211</text>
+                  <text class="tag keyTag" wx:if="{{item.isDoubleA == '1' ? true : false}}">双一流</text>
+                  <text class="tag">{{item.level == 1 ? '本科' : '专科'}}</text>
+                  <text class="tag">{{item.typeid}}</text>
+                </view>
+                <view class="schoolCity">{{item.location}}</view>
+              </view>
+            </navigator>
+          </block>
+          <!-- 三项 -->
+          <block wx:for='{{screenThree}}' wx:key='index'  wx:if='{{!screenThree == []}}'>
+            <navigator class="schoolInfo" url="/pages/schoolDetails?name={{item.name}}&cid={{item.cid}}&is211={{item.is211}}&is985={{item.is985}}&level={{item.level}}&img={{item.img}}&typeid={{item.typeid}}&isDoubleA={{item.isDoubleA}}&kq={{KQprovid}}&kqname={{KQname}}">
+              <view class="Info_left">
+                <image class="schoolLogo" src='https://img.baokaodaxue.com{{item.img}}' lazy-load/>
+              </view>
+              <view class="Info_right">
+                <view class="schoolName">{{item.name}}</view>
+                <view class="schoolTags">
+                  <text class="tag keyTag" wx:if="{{item.is985 == '1' ? true : false}}">985</text>
+                  <text class="tag keyTag" wx:if="{{item.is211 == '1' ? true : false}}">211</text>
+                  <text class="tag keyTag" wx:if="{{item.isDoubleA == '1' ? true : false}}">双一流</text>
+                  <text class="tag">{{item.level == 1 ? '本科' : '专科'}}</text>
+                  <text class="tag">{{item.typeid}}</text>
+                </view>
+                <view class="schoolCity">{{item.location}}</view>
+              </view>
+            </navigator>
+          </block>
+          <!-- 四项 -->
+          <block wx:for='{{screenFour}}' wx:key='index'  wx:if='{{!screenFour == []}}'>
+            <navigator class="schoolInfo"  url="/pages/schoolDetails?name={{item.name}}&cid={{item.cid}}&is211={{item.is211}}&is985={{item.is985}}&level={{item.level}}&img={{item.img}}&typeid={{item.typeid}}&isDoubleA={{item.isDoubleA}}&kq={{KQprovid}}&kqname={{KQname}}">
+              <view class="Info_left">
+                <image class="schoolLogo" src='https://img.baokaodaxue.com{{item.img}}' lazy-load/>
+              </view>
+              <view class="Info_right">
+                <view class="schoolName">{{item.name}}</view>
+                <view class="schoolTags">
+                  <text class="tag keyTag" wx:if="{{item.is985 == '1' ? true : false}}">985</text>
+                  <text class="tag keyTag" wx:if="{{item.is211 == '1' ? true : false}}">211</text>
+                  <text class="tag keyTag" wx:if="{{item.isDoubleA == '1' ? true : false}}">双一流</text>
+                  <text class="tag">{{item.level == 1 ? '本科' : '专科'}}</text>
+                  <text class="tag">{{item.typeid}}</text>
+                </view>
+                <view class="schoolCity">{{item.location}}</view>
+              </view>
+            </navigator>
+          </block>
+        </view>
+        <view class="dataTips">已到底部，数据来源于各省考试院</view>
+      </scroll-view>
+    </view>
+</template>
+<script>
+import wepy from 'wepy'
+
+import api from '../api/api'
+
+import com from '../utils/common'
+
+export default class Index extends wepy.page {
+  config = {
+    'component': true,
+    'usingComponents': {
+      'i-modal': '../components/iView-components/modal/index'
+    }
+  }
+  data = {
+    showTabBody: [false, false, false, false],
+    isOpacity: false,
+    tabBody: [1, 2, 3, 4],
+    tabsActiveIndex: [false, false, false, false],
+    tabData: [
+      [
+        {type: '全国', typeId: 0, selected: false},
+        {type: '北京', typeId: 1, selected: false},
+        {type: '天津', typeId: 2, selected: false},
+        {type: '上海', typeId: 3, selected: false},
+        {type: '重庆', typeId: 4, selected: false},
+        {type: '河北', typeId: 5, selected: false},
+        {type: '河南', typeId: 6, selected: false},
+        {type: '山东', typeId: 7, selected: false},
+        {type: '山西', typeId: 8, selected: false},
+        {type: '安徽', typeId: 9, selected: false},
+        {type: '江西', typeId: 10, selected: false},
+        {type: '江苏', typeId: 11, selected: false},
+        {type: '浙江', typeId: 12, selected: false},
+        {type: '湖北', typeId: 13, selected: false},
+        {type: '湖南', typeId: 14, selected: false},
+        {type: '广东', typeId: 15, selected: false},
+        {type: '广西', typeId: 16, selected: false},
+        {type: '云南', typeId: 17, selected: false},
+        {type: '贵州', typeId: 18, selected: false},
+        {type: '四川', typeId: 19, selected: false},
+        {type: '陕西', typeId: 20, selected: false},
+        {type: '青海', typeId: 21, selected: false},
+        {type: '宁夏', typeId: 22, selected: false},
+        {type: '黑龙江', typeId: 23, selected: false},
+        {type: '吉林', typeId: 24, selected: false},
+        {type: '辽宁', typeId: 25, selected: false},
+        {type: '西藏', typeId: 26, selected: false},
+        {type: '新疆', typeId: 27, selected: false},
+        {type: '内蒙古', typeId: 28, selected: false},
+        {type: '海南', typeId: 29, selected: false},
+        {type: '福建', typeId: 30, selected: false},
+        {type: '甘肃', typeId: 31, selected: false}
+      ],
+      [
+        {type: '不限', typeId: 0, selected: false},
+        {type: '综合', typeId: 1, selected: false},
+        {type: '工科', typeId: 2, selected: false},
+        {type: '师范', typeId: 3, selected: false},
+        {type: '财经', typeId: 4, selected: false},
+        {type: '政法', typeId: 5, selected: false},
+        {type: '语言', typeId: 6, selected: false},
+        {type: '医药', typeId: 7, selected: false},
+        {type: '农业', typeId: 8, selected: false},
+        {type: '林业', typeId: 9, selected: false},
+        {type: '民族', typeId: 10, selected: false},
+        {type: '艺术', typeId: 11, selected: false},
+        {type: '体育', typeId: 12, selected: false},
+        {type: '军事', typeId: 13, selected: false}
+      ],
+      [
+        {type: '不限', typeId: 0, selected: false},
+        {type: 985, typeId: 1, selected: false},
+        {type: 211, typeId: 2, selected: false},
+        {type: '双一流', typeId: 3, selected: false}
+      ],
+      [
+        {type: '不限', typeId: 0, selected: false},
+        {type: '本科', typeId: 1, selected: false},
+        {type: '专科', typeId: 2, selected: false}
+      ]
+    ],
+    modalData: [
+      {type: '北京', typeId: 1, selected: false},
+      {type: '天津', typeId: 2, selected: false},
+      {type: '上海', typeId: 3, selected: false},
+      {type: '重庆', typeId: 4, selected: false},
+      {type: '河北', typeId: 5, selected: false},
+      {type: '河南', typeId: 6, selected: false},
+      {type: '山东', typeId: 7, selected: false},
+      {type: '山西', typeId: 8, selected: false},
+      {type: '安徽', typeId: 9, selected: false},
+      {type: '江西', typeId: 10, selected: false},
+      {type: '江苏', typeId: 11, selected: false},
+      {type: '浙江', typeId: 12, selected: false},
+      {type: '湖北', typeId: 13, selected: false},
+      {type: '湖南', typeId: 14, selected: false},
+      {type: '广东', typeId: 15, selected: false},
+      {type: '广西', typeId: 16, selected: false},
+      {type: '云南', typeId: 17, selected: false},
+      {type: '贵州', typeId: 18, selected: false},
+      {type: '四川', typeId: 19, selected: false},
+      {type: '陕西', typeId: 20, selected: false},
+      {type: '青海', typeId: 21, selected: false},
+      {type: '宁夏', typeId: 22, selected: false},
+      {type: '黑龙江', typeId: 23, selected: false},
+      {type: '吉林', typeId: 24, selected: false},
+      {type: '辽宁', typeId: 25, selected: false},
+      {type: '西藏', typeId: 26, selected: false},
+      {type: '新疆', typeId: 27, selected: false},
+      {type: '内蒙古', typeId: 28, selected: false},
+      {type: '海南', typeId: 29, selected: false},
+      {type: '福建', typeId: 30, selected: false},
+      {type: '甘肃', typeId: 31, selected: false}
+    ],
+    // userLoginInfo: '',
+    // dev: '',
+    schoolInfoList: [],
+    schoolTypeList: [],
+    getUserInfo: true,
+    page: 1,
+    sessionId: '',
+    // modal
+    getModal: true, // 修改回true
+    title: '请选择您所在的考区',
+    KQprovid: '',
+    KQname: '考区',
+    checkedName: [],
+    // 存放筛选过后的学校
+    screen: [],
+    screenTwo: [],
+    screenThree: [],
+    screenFour: [],
+    screenPage: 1,
+    provId: '',
+    schoolTypeId: '',
+    zdId: '',
+    bzId: '',
+    checkIndex: -1,
+    checkTabHead: -1,
+    collectSchool: [],
+    collectSub: [],
+    schoolCollectArr: [],
+    subjectCollectArr: [],
+    checkType: '',
+    uid: ''
+  }
+  onLoad(option) {
+    // 主页面逻辑
+    wepy.showLoading({
+      title: '',
+      mask: true
+    }).then(() => {
+      // 存储考区--默认15
+      // wepy.setStorageSync('kq', 15)
+      this.KQname = wepy.getStorageSync('KQname')
+      this.uid = wepy.getStorageSync('uid')
+    //   console.log(this.KQname)
+      // 获取机型--ios或者az
+    //   wepy.getSystemInfo().then(res => {
+    //     if (res.system.indexOf('iOS') !== -1) {
+    //       this.dev = '3'
+    //       wepy.setStorageSync('dev', this.dev)
+    //     } else {
+    //       this.dev = '2'
+    //       wepy.setStorageSync('dev', this.dev)
+    //     }
+    //     this.$apply()
+    //   })
+      if (wepy.getStorageSync('userInfo')) {
+        this.getUserInfo = false
+      }
+      wepy.hideLoading()
+    })
+  }
+  methods = {
+    // 点击阻止modal阴影关闭模态框
+    closeModal() {
+      wepy.showToast({
+        title: '请先选择考区',
+        icon: 'none',
+        duration: 2000,
+        mask: true
+      })
+    },
+    // 点击获取考区信息
+    selectProvince(id) {
+      // 全局考区
+      this.$parent.globalData.kq = id
+      this.$parent.globalData.kqname = this.modalData[id - 1].type
+      wepy.setStorageSync('KQname', this.modalData[id - 1].type)
+      this.KQprovid = id
+      for (let i = 0; i < this.modalData.length; i++) {
+        this.modalData[i].selected = false
+      }
+      this.modalData[id - 1].selected = !this.modalData[id - 1].selected
+      // this.KQname = this.modalData[id - 1].type
+      console.log(id, 'id')
+      this.getModal = true
+
+      // 获取用户收藏
+      this.getMyCollection(1)
+      this.getMyCollection(2)
+    },
+    // 点击确定提交省份
+    submitProvinces(e) {
+      if (this.KQprovid) {
+        this.getModal = !this.getModal
+        wepy.setStorageSync('kq', this.KQprovid)
+        this.KQname = wepy.getStorageSync('KQname')
+        this.getSchoolListDesc(this.page)
+
+        // 存储收藏信息
+        for (let i = 0; i < this.collectSchool.length; i++) {
+          if (!this.schoolCollectArr) {
+            this.schoolCollectArr = []
+          }
+          // console.log(this.collectSchool[i], 'colschool')
+          this.schoolCollectArr.push(this.collectSchool[i].cid)
+        }
+        for (let i = 0; i < this.collectSub.length; i++) {
+          if (!this.subjectCollectArr) {
+            this.subjectCollectArr = []
+          }
+          this.subjectCollectArr.push(this.collectSub[i].code)
+        }
+        wepy.setStorageSync('schoolCollect', this.schoolCollectArr)
+        wepy.setStorageSync('subjectCollect', this.subjectCollectArr)
+      } else {
+        wepy.showToast({
+          title: '请先选择考区',
+          icon: 'none',
+          duration: 2000,
+          mask: false
+        })
+      }
+    },
+    // 点击更改考区
+    changekq () {
+      this.title = '切换您所在的考区'
+      this.getModal = !this.getModal
+      this.closeTab()
+      this.checkedName = []
+      this.page = 1
+      this.provId = ''
+      this.schoolTypeId = ''
+      this.zdId = ''
+      this.bzId = ''
+    },
+    // tab栏切换
+    switchTabsHandle(index, e) {
+      if (index === 0) {
+        this.showTabBody[0] = !this.showTabBody[0]
+        this.showTabBody[1] = false
+        this.showTabBody[2] = false
+        this.showTabBody[3] = false
+
+        this.tabsActiveIndex[0] = !this.tabsActiveIndex[0]
+        this.tabsActiveIndex[1] = false
+        this.tabsActiveIndex[2] = false
+        this.tabsActiveIndex[3] = false
+      } else if (index === 1) {
+        this.showTabBody[1] = !this.showTabBody[1]
+        this.showTabBody[0] = false
+        this.showTabBody[2] = false
+        this.showTabBody[3] = false
+
+        this.tabsActiveIndex[1] = !this.tabsActiveIndex[1]
+        this.tabsActiveIndex[3] = false
+        this.tabsActiveIndex[2] = false
+        this.tabsActiveIndex[0] = false
+      } else if (index === 2) {
+        this.showTabBody[2] = !this.showTabBody[2]
+        this.showTabBody[1] = false
+        this.showTabBody[0] = false
+        this.showTabBody[3] = false
+
+        this.tabsActiveIndex[2] = !this.tabsActiveIndex[2]
+        this.tabsActiveIndex[1] = false
+        this.tabsActiveIndex[3] = false
+        this.tabsActiveIndex[0] = false
+      } else if (index === 3) {
+        this.showTabBody[3] = !this.showTabBody[3]
+        this.showTabBody[1] = false
+        this.showTabBody[2] = false
+        this.showTabBody[0] = false
+
+        this.tabsActiveIndex[3] = !this.tabsActiveIndex[3]
+        this.tabsActiveIndex[1] = false
+        this.tabsActiveIndex[2] = false
+        this.tabsActiveIndex[0] = false
+      }
+      // this.tabsActiveIndex[index] = this.showTabBody[index]
+      this.isOpacity = !this.showTabBody[index]
+      // if (i === this.checkTabHead) {
+      //   this.tabsActiveIndex = -1
+      // }
+      this.checkTabHead = index
+    },
+    showBg() {
+      this.isOpacity = !this.isOpacity
+    },
+    // 匹配不同的tab进行数据筛选
+    selectThisPart(item, index, indexData) {
+      if (index === 0) {
+        this.provId = item.typeId
+      } else if (index === 1) {
+        this.schoolTypeId = item.typeId
+      } else if (index === 2) {
+        this.zdId = item.typeId
+      } else if (index === 3) {
+        this.bzId = item.typeId
+      }
+      this.checkedName[index] = item.type
+      this.clearScreenArr()
+      this.ctrlSingerChecked(this.tabData[index], item)
+      this.getSchoolListDesc(this.screenPage, this.provId, this.schoolTypeId, this.zdId, this.bzId)
+      this.checkType = indexData
+      this.$apply()
+    },
+    // 上拉加载大学
+    loadOtherSchool() {
+      // if (this.checkSchool) {
+      if (this.schoolInfoList.length > 0) {
+        this.page += 1
+        this.getSchoolListDesc(this.page)
+      }
+      if (this.screen.length > 0 || this.screenTwo.length > 0 || this.screenThree.length > 0 || this.screenFour.length) {
+        this.screenPage += 1
+        this.getSchoolListDesc(this.screenPage, this.provId, this.schoolTypeId, this.zdId, this.bzId)
+      }
+      // }
+    },
+    // 确定当前筛选
+    submitData(index) {
+      // this.tabsActiveIndex = [false, false, false, false]
+      console.log(index, 'index')
+      // this.screenPage = 1
+      // if (index === 0) {
+      //   this.provId = ''
+      // } else if (index === 1) {
+      //   this.schoolTypeId = ''
+      // } else if (index === 2) {
+      //   this.zdId = ''
+      // } else if (index === 3) {
+      //   this.bzId = ''
+      // }
+      // this.checkedName[index] = ''
+      if (this.checkType === 0) {
+        if (index === 0) {
+          this.checkedName[0] = '所在地'
+        } else if (index === 1) {
+          this.checkedName[1] = '学校类型'
+        } else if (index === 2) {
+          this.checkedName[2] = '重点院校'
+        } else if (index === 3) {
+          this.checkedName[3] = '批次'
+        }
+      }
+      this.closeTab()
+      // this.getSchoolListDesc(this.screenPage, this.provId, this.schoolTypeId, this.zdId, this.bzId)
+      // for (let i = 0; i < this.tabData[index].length; i++) {
+      //   this.tabData[index][i].selected = false
+      // }
+    }
+  }
+  // 关闭tab选择
+  closeTab() {
+    this.showTabBody = [false, false, false, false]
+    this.isOpacity = false
+    this.tabsActiveIndex = [false, false, false, false]
+    // this.tabsActiveIndex = -1
+  }
+  // 转发功能
+  onShareAppMessage(res) {
+    return {
+      title: '全国院校大全',
+      path: `/pages/authorize_new?fromPage=index&shareId=${this.uid}`
+    }
+  }
+  // 获取学校列表&筛选
+  getSchoolListDesc(page, dq, fw, zd, bz) {
+    // 条件搜索学校信息
+    wepy.showLoading({
+      title: '获取学校列表',
+      mask: true
+    }).then(() => {
+      // 判断传送数据
+      // kq目前写死了
+      var data = {
+        kq: this.KQprovid,
+        page: page
+      }
+      if (dq && dq !== '所在地') {
+        data.dq = dq
+      }
+      if (fw && fw !== '学校类型') {
+        data.fw = fw
+      }
+      if (zd && zd !== '重点院校') {
+        data.zd = zd
+      }
+      if (bz && bz !== '批次') {
+        data.bz = bz
+      }
+      api.getSchoolListSearch({
+        data: data
+      }).then(res => {
+        if (res.code === '200') {
+          // 过滤学校类型
+          for (let i = 0; i < res.extraData.info.length; i++) {
+            res.extraData.info[i].typeid = com.filterSchoolType(res.extraData.info[i].typeid)
+          }
+          // 正常不筛选
+          if (!dq && !fw && !zd && !bz) {
+            this.screen = []
+            this.screenTwo = []
+            this.screenThree = []
+            this.screenFour = []
+            if (!this.schoolInfoList) {
+              this.schoolInfoList = []
+            }
+            this.schoolInfoList = this.schoolInfoList.concat(res.extraData.info)
+          }
+
+          // 筛选地区
+          if (!this.screen) {
+            this.screen = []
+          }
+
+          // 只选择一项
+          if (dq || fw || zd || bz) {
+            this.schoolInfoList = []
+            // this.screenTwo = []
+            // this.screenThree = []
+            // this.screenFour = []
+            this.screen = this.screen.concat(res.extraData.info)
+          }
+
+          // 选择两项
+          if ((dq && fw) || (dq && zd) || (dq && bz) || (fw && zd) || (fw && bz) || (zd && bz)) {
+            this.schoolInfoList = []
+            this.screen = []
+            // this.screenThree = []
+            // this.screenFour = []
+            this.screenTwo = this.screenTwo.concat(res.extraData.info)
+          }
+
+          // 选择三项
+          if ((dq && fw && zd) || (dq && fw && bz) || (dq && bz && zd) || (bz && fw && zd)) {
+            this.schoolInfoList = []
+            this.screen = []
+            this.screenTwo = []
+            // this.screenFour = []
+            this.screenThree = this.screenThree.concat(res.extraData.info)
+          }
+
+          // 选择四项
+          if (dq && fw && zd && bz) {
+            this.schoolInfoList = []
+            this.screen = []
+            this.screenTwo = []
+            this.screenThree = []
+            this.screenFour = this.screenFour.concat(res.extraData.info)
+          }
+          // if (res.extraData.info.length === 0) {
+            // this.checkSchool = false
+          // }
+          this.$apply()
+          this.defaultBg = '#fff'
+          wepy.hideLoading()
+          console.log(res, '学校列表')
+        }
+      })
+    })
+  }
+  // 单选控制
+  ctrlSingerChecked(typeArr, item) {
+    let index = item.typeId
+    // console.log(index, '单选')
+    for (let i = 0; i < typeArr.length; i++) {
+      typeArr[i].selected = false
+    }
+    typeArr[index].selected = !typeArr[index].selected
+    console.log(typeArr[index].selected)
+  }
+  // 清空筛选的数组
+  clearScreenArr() {
+    this.screenPage = 1
+    this.screen = []
+    this.screenTwo = []
+    this.screenThree = []
+    this.screenFour = []
+  }
+  // 每次登陆就先获取收藏的信息存在本地
+  getMyCollection(type) {
+    api.getMyCollect({
+      data: {
+        page: 1,
+        type: type
+      }
+    }).then(res => {
+      if (res.code === '200') {
+        console.log(res)
+        if (type === 1) {
+          this.collectSchool = res.extraData.info
+        } else if (type === 2) {
+          this.collectSub = res.extraData.info
+          console.log(res, '收藏zy')
+        }
+        this.$apply()
+      }
+    })
+  }
+}
+</script>
+<style lang="less" scoped>
+  .index{
+    background-color: #f2f4f7;
+    .search{
+      width: 750rpx;
+      height: 110rpx;
+      background-color: #5ba8ff;
+      position: relative;
+      box-sizing: border-box;
+      text-align: center;
+      line-height: 110rpx;
+      font-size: 28rpx;
+      color: #fff;
+      z-index: 2;
+      .search_selectArea{
+        width: 160rpx;
+        height: 110rpx;
+        position: absolute;
+        top: 0;
+        left: 0;
+        .icon-location{
+          width: 26rpx;
+          height: 33rpx;
+          position: absolute;
+          top: 40rpx;
+          left: 10rpx;
+        }
+        .icon-arrow_down{
+          width: 15rpx;
+          height: 10rpx;
+          position: absolute;
+          top: 50rpx;
+          right: 15rpx;
+        }
+      }
+      .search_selectBox{
+        color: #999;
+        line-height: 70rpx;
+        height: 70rpx;
+        width: 560rpx;
+        position: absolute;
+        top: 20rpx;
+        left: 160rpx;
+        border-radius: 30rpx;
+        background-color: #fff;
+        .icon-search{
+          width: 30rpx;
+          height: 30rpx;
+          position: absolute;
+          top: 20rpx;
+          left: 185rpx;
+        }
+      }
+    }
+    .filterTab{
+      width: 750rpx;
+      // height: 100vh;
+      text-align: center;
+      line-height: 90rpx;
+      font-size: 28rpx;
+      position: absolute;
+      top: 110rpx;
+      left: 0;
+      z-index: 6;
+      .tab-head{
+        display: flex;
+        background-color: #fff;
+        view {
+          color: #000;
+          box-sizing: border-box;
+          border: 1rpx solid #dcdcdc;
+          margin-left: -1rpx;
+          width: 180rpx;
+          height: 90rpx;
+          flex: 1;
+        }
+        .active{
+          color: #5ba8ff;
+        }
+        .active:after {
+          border-bottom-color: #5ba8ff;
+        }
+        .tabs-item text{
+          position: relative;
+          .icon{
+            display: block;
+            content: '';
+            border: 8rpx solid transparent;
+            border-top-color: #999;
+            border-left-width: 8rpx;
+            border-right-width: 8rpx;
+            position: absolute;
+            bottom: 3rpx;
+            right: -25rpx;
+            // transform: translateY(-50%);
+          }
+          .iconActive{
+            border-top-color: transparent;
+            border-bottom-color: #5ba8ff;
+            bottom: 10rpx;
+          }
+        }
+      }
+      .tabs-body{
+        background-color: #fff;
+        .tabs-content{
+          display: flex;
+          flex-wrap: wrap;
+          font-size: 28rpx;
+          .option{
+            width: 150rpx;
+            height: 78rpx;
+            line-height: 78rpx;
+            color: #999;
+          }
+          .selected{
+            color: #5ba8ff;
+          }
+        }
+      }
+      .tabs-tips{
+        width: 750rpx;
+        display: flex;
+        justify-content: space-between;
+        background-color: #fff;
+        line-height: 60rpx;
+        font-size: 28rpx;
+        padding-bottom: 40rpx;
+        .checkMore{
+          margin-left: 40rpx;
+          height: 60rpx;
+        }
+        .sure{
+          margin-right: 40rpx;
+          height: 60rpx;
+          line-height: 60rpx;
+          width: 120rpx;
+          background-color: #5ba8ff;
+          color: #fff;
+          border-radius: 15rpx;
+          font-size: 28rpx;
+        }
+      }
+      .batch{
+        border-right:none;
+      }
+    }
+    .schoolList{
+      padding-top: 100rpx;
+      .schoolInfo{
+        background-color:#fff;
+        width: 750rpx;
+        height: 130rpx;
+        margin-bottom: 10rpx;
+        display: flex;
+        position: relative;
+        .Info_left{
+          width: 130rpx;
+          height: 130rpx;
+          .schoolLogo{
+            width: 90rpx;
+            height: 90rpx;
+            margin: 20rpx;
+          }
+        }
+        .Info_right{
+          width: 620rpx;
+          height: 120rpx;
+          font-size: 24rpx;
+          .schoolName{
+            font-size: 34rpx;
+            height: 75rpx;
+            line-height: 75rpx;
+            color: #333;
+          }
+          .schoolTags{
+            height: 55rpx;
+            .tag{
+              padding: 5rpx 10rpx;
+              margin-right: 16rpx;
+              color: #999;
+            }
+            .keyTag{
+              background-color: #5ba8ff;
+              color: #fff;
+              border-radius: 10rpx;
+            }
+          }
+          .schoolCity{
+            position: absolute;
+            bottom: 20rpx;
+            right: 20rpx;
+            color: #999;
+          }
+        }
+      }
+    }
+    .selectArea{
+      .area{
+        padding: 25rpx 35rpx;
+        font-size: 30rpx;
+      }
+    }
+    .options {
+      text-align: center;
+      width: 150rpx;
+      margin-top: 50rpx;
+    }
+    .bg{
+      width: 750rpx;
+      height: 100vh;
+      background-color: rgba(0, 0, 0, .3);
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: -1;
+    }
+    .getUserInfo{
+      height: 100vh;
+      width: 750rpx;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 11;
+      .btn{
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+      }
+    }
+    .modal{
+      height: 100vh;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 10;
+      &-mark{
+        width: 750rpx;
+        height: 100%;
+        position: relative;
+        background-color: rgba(0,0,0,.3);
+        z-index: -1;
+      }
+      .modal-content{
+        width: 680rpx;
+        background-color: #fff;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%,-50%);
+        border-radius: 20rpx;
+        overflow: hidden;
+        &-title{
+          height: 80rpx;
+          line-height: 80rpx;
+          text-align: center;
+          font-size: 30rpx;
+          border-bottom: 1rpx solid #dcdcdc;
+          margin: 0 36rpx;
+        }
+        &-provinces{
+          background-color: #fff;
+          display: flex;
+          flex-wrap: wrap;
+          view{
+            text-align: center;
+            margin-top: 50rpx;
+            width: 136rpx;
+            font-size: 28rpx;
+            color: #999;
+          }
+        }
+        &-btn{
+          width: 220rpx;
+          height: 70rpx;
+          line-height: 70rpx;
+          background-color: #5ba8ff;
+          color: #fff;
+          font-size: 28rpx;
+          margin: 40rpx auto;
+        }
+      }
+      .active{
+        color: #5ba8ff!important;
+      }
+    }
+    .dataTips{
+      height: 50rpx;
+      line-height: 50rpx;
+      background-color: #f2f5f7;
+      font-size: 26rpx;
+      text-align: center;
+      color: #999;
+    }
+  }
+</style>

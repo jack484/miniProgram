@@ -1,0 +1,393 @@
+<template>
+  <view class="lucky">
+    <image wx:if="{{imageUrl}}" src="{{imageUrl}}/img/yd/xingge/giftBg.png" class="bg"></image>
+    <view class="gift">
+      <view class="gift-tip"><text class="textColor" style="margin-right:40rpx;">已邀请好友：{{applyCount}}人</text><text class="textColor">{{'当前抽奖机会：'+ change +'次'}}</text></view>
+      <view class="gift-pan">
+        <image wx:if="{{imageUrl}}" src="{{imageUrl}}/img/yd/xingge/pan.png" class="pan-bottom" animation="{{animationData}}"></image>
+        <image wx:if="{{imageUrl}}" src="{{imageUrl}}/img/yd/xingge/giftBtn.png" class="pan-top" bindtap="startRole"></image>
+      </view>
+      <view class="gift-tip"><text class="textColor" bindtap="goToList">查看我的中奖记录></text></view>
+    </view>
+    <view class="mask" wx:if="{{isEnd}}" catchtap="closeMask"></view>
+    <view class="result" wx:if="{{isGift}}">
+      <image wx:if="{{result == 1 ||result == 2 || result == 3 || result == 4}}" src="{{imageUrl}}/img/yd/xingge/zjl.png" class="result-title"></image>
+      <image wx:if="{{result == 5 ||result == 6}}" src="{{imageUrl}}/img/yd/xingge/zlyc.png" class="result-title"></image>
+      <image wx:if="{{result == 7}}" src="{{imageUrl}}/img/yd/xingge/xxcy.png" class="result-title"></image>
+      <view class="result-main">
+        <image wx:if="{{imageUrl}}" src="{{imageUrl}}{{giftList[result].img}}" class="gift-img"></image>
+        <view class="giftInfo-top">{{giftList[result].title}}</view>
+        <view class="giftInfo-title" wx:if="{{giftList[result].des}}">{{giftList[result].des}}</view>
+        <view class="giftInfo-des">
+          <view>{{giftList[result].tip}}</view>
+        </view>
+        <view class="giftInfo-code" wx:if="{{giftList[result].code}}" bindtap="goToDetail">查看兑换码></view>
+        <view class="giftInfo-share">成功邀请3个好友参加测试可获得1次抽奖机会，邀请第4个可获得1次抽奖机会，邀请第5个可获得1次抽奖机会，以此类推。</view>
+        <button class="share-btn" open-type="share">
+          <image wx:if="{{imageUrl}}" src="{{imageUrl}}/img/yd/xingge/testBtn.png"></image>
+          <text>邀请好友</text>
+        </button>
+      </view>
+    </view>
+    <view class="resultList" wx:if="{{isList}}">
+      <image wx:if="{{imageUrl}}" src="{{imageUrl}}/img/yd/xingge/zjlist.png" class="resultList-title"></image>
+      <image wx:if="{{imageUrl}}" src="{{imageUrl}}/img/yd/xingge/X.png" class="close-btn" bindtap="closeMask"></image>
+      <view class="resultList-main">
+        <block wx:if="{{luckyData.length}}">
+          <scroll-view scroll-y class="scrollbox">
+            <view wx:for="{{luckyData}}" wx:for-index="idx" wx:for-item="item" wx:key="idx">
+              <text class="left">{{idx+1}}.{{giftList[item.result].title}}</text>
+              <text class="left time">{{item.time}}</text>
+              <text class="right" data-result="{{item.result}}" wx:if="{{item.result == 2 || item.result == 3 || item.result == 4}}" bindtap="goToListDetail">查看</text>
+            </view>
+          </scroll-view>
+        </block>
+        <view wx:if="{{!luckyData.length}}" class="noData">
+          <text>暂未中奖</text>
+        </view>
+      </view>
+      <!-- <view wx:if="{{luckyData.length}}" class="resultList-btn" bindtap="goToDetail">查看奖品详情></view> -->
+    </view>
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import api from '../api/api'
+import com from '../utils/common'
+
+export default class lucky extends wepy.page {
+  config = {
+    navigationBarTitleText: '限时抽奖活动',
+    navigationBarBackgroundColor: '#fff',
+    navigationBarTextStyle: 'black'
+  }
+  data = {
+    imageUrl: api.imageUrl,
+    isEnd: false,
+    isGift: false,
+    isList: false,
+    startAngle: 0,
+    totalAngle: 0,
+    result: '',
+    // 1红包 2书 3抱枕 4u盘 5再来一次 6再来一次 7谢谢
+    giftList: {
+      '1': {angle: 315, title: '刷题奖', des: '现金红包0.3元', tip: '现金红包已发送至您的零用包里，请前往查收', img: '/img/yd/xingge/money.png', code: false},
+      '2': {angle: 45, title: '学神奖', des: '《5年高考3年模拟》一套', tip: '实体礼品需要兑换码通过报考大学微信公众号后台验证发放', img: '/img/yd/xingge/book.png', code: true},
+      '3': {angle: 225, title: '学渣奖', des: '抱枕一个', tip: '实体礼品需要兑换码通过报考大学微信公众号后台验证发放', img: '/img/yd/xingge/bz.png', code: true},
+      '4': {angle: 180, title: '学弱奖', des: 'U盘一个', tip: '实体礼品需要兑换码通过报考大学微信公众号后台验证发放', img: '/img/yd/xingge/upan.png', code: true},
+      '5': {angle: 0, title: '再来一次', des: '', tip: '不要气馁，再抽一次，祝你好运！', img: '/img/yd/xingge/more.png', code: false},
+      '6': {angle: 270, title: '再来一次', des: '', tip: '不要气馁，再抽一次，祝你好运！', img: '/img/yd/xingge/more.png', code: false},
+      '7': {angle: 135, title: '谢谢参与', des: '', tip: '谢谢参与，本次没有中奖。分享链接邀请好友获取更多抽奖机会！', img: '/img/yd/xingge/thanks.png', code: false}
+    },
+    luckyData: '', // 中奖记录
+    change: 0, // 剩余次数
+    applyCount: 0, //  邀请次数
+    animationData: '',
+    flag: false, // 点击按钮
+    uid: ''
+  }
+  onLoad() {
+    this.uid = wepy.getStorageSync('uid')
+    this.getGiftList()
+  }
+  methods = {
+    startRole() {
+      var that = this
+      // 创建动画
+      var animation = wepy.createAnimation({
+        duration: 3000,
+        timingFunction: 'ease',
+        delay: 0,
+        transformOrigin: '51% 50.1%'
+      })
+      if (!this.flag) {
+        this.flag = true
+        // 奖品信息
+        api.getGiftGoods().then(res => {
+          if (res.code === '200') {
+            var result = res.extraData.result
+            this.result = result
+            var _thisAngle = that.giftList[result].angle
+            console.log(result, _thisAngle)
+            // 获取角度
+            that.totalAngle = that.totalAngle + 360 * 3
+            var angle = that.totalAngle + _thisAngle
+            // 设置动画
+            animation.rotate(angle).step()
+            // 导出动画
+            that.animationData = animation.export()
+            that.getGiftList()
+            that.$apply()
+            // 重置3000s
+            setTimeout(() => {
+              that.isEnd = true
+              that.isGift = true
+              that.flag = false
+              that.$apply()
+            }, 3000)
+          } else {
+            that.flag = false
+            that.$apply()
+            wepy.showToast({
+              title: res.message,
+              icon: 'none',
+              duration: 1000
+            })
+          }
+        })
+      }
+    },
+    // 关闭遮罩层
+    closeMask() {
+      this.isEnd = false
+      this.isGift = false
+      this.isList = false
+      this.$apply()
+    },
+    goToList() {
+      this.isEnd = true
+      this.isList = true
+      this.$apply()
+    },
+    goToDetail() {
+      wepy.navigateTo({ url: `/pages/luckyDetail?result=${this.result}` })
+    },
+    goToListDetail(e) {
+      var _result = e.currentTarget.dataset.result
+      wepy.navigateTo({ url: `/pages/luckyDetail?result=${_result}` })
+    }
+  }
+  // 中奖记录
+  getGiftList() {
+    api.getGiftList().then(res => {
+      if (res.code === '200') {
+        var data = res.extraData.record
+        data.forEach((item, index) => {
+          item.time = com.filterTime(item.time)
+        })
+        this.luckyData = data
+        this.change = res.extraData.chance
+        this.applyCount = res.extraData.share_count
+        this.$apply()
+        // console.log(this.luckyData)
+      }
+    })
+  }
+  // 邀请好友
+  onShareAppMessage(res) {
+    console.log(res)
+    return {
+      title: '测性格找专业',
+      path: `/pages/authorize_new?fromPage=interestIndex&shareId=${this.uid}`,
+      imageUrl: '../icon/shareBg.jpg'
+    }
+  }
+}
+</script>
+
+<style lang="less" scoped>
+  .lucky{
+    width: 750rpx;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    .bg{
+      width:750rpx;
+      height: 100vh;
+      vertical-align: middle;
+    }
+    .gift{
+      width:750rpx;
+      position: absolute;
+      top:28vh;
+      left: 0;
+      z-index: 1;
+      &-tip{
+        text-align: center;
+        font-size: 26rpx;
+        color:#fc9b00;
+        text-shadow: 0 0 2rpx #fff;
+      }
+      &-pan{
+        height: 728rpx;
+        width:750rpx;
+        padding-top: 50rpx;
+        padding-left: 65rpx;
+        box-sizing: border-box;
+        position: relative;
+        .pan-bottom{
+          position: absolute;
+          width:620rpx;
+          height: 620rpx;
+          z-index: 3;
+        //   transform: rotate(315deg);
+        }
+        .pan-top{
+          position: absolute;
+          width: 136rpx;
+          height: 173rpx;
+          z-index: 5;
+          left: 312rpx;
+          top: 258rpx;
+        }
+      }
+    }
+    .mask{
+      width:750rpx;
+      height: 100vh;
+      background-color: rgba(0, 0, 0, 0.4);
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 10;
+    }
+    .resultList{
+      width: 580rpx;
+      margin: 0 auto;
+      position: absolute;
+      left: 85rpx;
+      z-index: 11;
+      border-radius: 20rpx;
+      overflow: hidden;
+      .scrollbox{
+        height: 350rpx; 
+        // padding-bottom: 20rpx;
+      }
+      &-title{
+        width: 580rpx;
+        height: 104rpx;
+        vertical-align: middle;
+      }
+      .close-btn{
+        width: 44rpx;
+        height: 44rpx;
+        position: absolute;
+        top:25rpx;
+        right: 22rpx;
+      }
+      &-main{
+        background-color: #fff;
+        min-height: 100rpx;
+        view{
+          height: 90rpx;
+          padding: 0 30rpx;
+          line-height: 90rpx;
+          border-bottom: 1px solid #eee;
+          .left{
+            float: left;
+            font-size: 28rpx;
+            color:#333;
+            margin-right: 20rpx;
+            &.time{
+             font-size: 24rpx;
+             color:#999;
+            }
+          }
+          .right{
+            float: right;
+            font-size: 28rpx;
+            color:#5ba8ff;
+          }
+        }
+        .noData{
+         font-size: 28rpx;
+         text-align: center;
+         color:#666;
+         border-bottom:  0 none;
+        }
+      }
+      &-btn{
+        text-align: center;
+        color:#5ba8ff;
+        font-size: 28rpx;
+        background-color: #fff;
+        padding: 35rpx 0;
+      }
+    }
+    .result{
+        width: 580rpx;
+        background-color: #fff;
+        margin: 0 auto;
+        position: absolute;
+        left: 85rpx;
+        z-index: 11;
+        &-title{
+          width: 580rpx;
+          height: 104rpx;
+          vertical-align: middle;
+        }
+        &-main{
+           padding-top: 10rpx;
+          .gift-img{
+            width: 280rpx;
+            height: 280rpx;
+            margin-left: 150rpx;
+          }
+          view{
+            text-align: center;
+            &.giftInfo-top{
+              color: #333;
+              font-size: 42rpx;
+              font-weight: 700;
+              margin-bottom: 20rpx;
+            }
+            &.giftInfo-title{
+              font-size:28rpx;
+              color: #555;
+              margin-bottom: 20rpx;
+            }
+            &.giftInfo-des{
+              font-size:24rpx;
+              color: #999;
+              text-align: center;
+              width:375rpx;
+              margin-left: 102.5rpx;
+              margin-bottom: 50rpx;
+              view{
+                text-align: left;
+                display: inline-block
+              }
+            }
+            &.giftInfo-code{
+              font-size: 24rpx;
+              color: #5ba8ff;
+              margin-bottom: 50rpx;
+            }
+            &.giftInfo-share{
+              font-size: 24rpx;
+              color: #999;
+              text-align: left;
+              width:475rpx;
+              margin-left: 52.5rpx;
+              margin-bottom: 20rpx;
+            }
+          }
+          .share-btn{
+            width: 410rpx;
+            height: 140rpx;
+            background-color:#fff;
+            border-color:#fff;
+            position: relative;
+            padding-left: 0rpx;
+            padding-right: 0rpx;
+            &:after{
+              border: 0 none;
+            }
+            // margin-left: 85rpx;
+            image{
+              width: 410rpx;
+              height: 140rpx;   
+            }
+            text{
+              position: absolute;
+              font-size: 30rpx;
+              left: 150rpx;
+              top: 20rpx;
+              color: #fff;
+            }
+          }
+        }
+      }
+  }
+</style>

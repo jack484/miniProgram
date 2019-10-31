@@ -1,0 +1,394 @@
+<style lang="less">
+.login{
+  background-color: #f5f5f5;
+  height: 100vh;
+  overflow: hidden;
+  &-phone,
+  &-code{
+    background-color: #fff;
+    height: 100rpx;
+    line-height: 100rpx;
+    display: flex;
+    font-size: 28rpx;
+    view{
+      width: 90rpx;
+      margin: 0 40rpx;
+      color: #333;
+    }
+    input{
+      width: 580rpx;
+      height: 100rpx;
+    }
+  }
+  &-code{
+    border-top: 1rpx solid #dcdcdc;
+    border-bottom: 1rpx solid #dcdcdc;
+    input{
+      width: 370rpx;
+    }
+    .getCode{
+      height: 90rpx;
+      width: 220rpx;
+      padding: 0;
+      font-size: 28rpx;
+      line-height: 100rpx;
+      text-align: center;
+      margin: 5rpx 0;
+      border-left: 1rpx solid #dcdcdc;
+      color: #1f80b0;
+      background-color: #fff;
+      border-radius: 0%;
+      &:after{
+        border:none;
+      }
+    }
+  }
+  &-invite{
+    display: flex;
+    font-size: 28rpx;
+    line-height: 100rpx;
+    height: 100rpx;
+    background-color: #fff;
+    .invite{
+      width: 220rpx;
+      padding-left: 20rpx;
+    }
+    input{
+      width: 490rpx;
+      height: 100rpx;
+    }
+  }
+  &-phone{
+    margin-top: 20rpx;
+  }
+  .sureBtn{
+    width: 600rpx;
+    height: 80rpx;
+    background-color: #1f80b0;
+    color: #fff;
+    font-size: 30rpx;
+    position: absolute;
+    bottom: 50rpx;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .getUserInfo{
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 10;
+  }
+  .test{
+    opacity: 0;
+  }
+}
+</style>
+<template>
+  <view class="login">
+    <load wx:if='{{!loading}}'></load>
+    <view wx:if='{{loading}}' class="{{loading ? '' : 'test'}}">
+      <view class="login-phone">
+        <view class="phone">手机号</view>
+        <input type="number" placeholder='请输入手机号' bindinput='checkPhone' value='{{phone}}'/>
+      </view>
+      <view class="login-code">
+        <view class="code">验证码</view>
+        <input type="number" placeholder='请输入验证码' value='{{code}}' bindinput='checkCode'/>
+        <button class="getCode" bindtap='getCodeHandle()' disabled='{{isCode}}'>
+          <text wx:if="{{getCode}}">获取验证码</text>
+          <text wx:if="{{!getCode}}">{{time}}s后重新获取</text>
+        </button>
+      </view>
+      <view class="login-invite">
+        <view class="invite">邀请码(非必填)</view>
+        <input type="text" placeholder='输入邀请码领取折扣券' bindinput='getYqcode' value='{{yqcode}}'/>
+      </view>
+      <button class="sureBtn" bindtap='login'>确定</button>
+      <i-modal visible="{{ isChecked }}" bindclick='closeTipModal' actions="{{action}}">
+        <view>请输入正确的手机号</view>
+      </i-modal>
+      <button open-type='getUserInfo' bindgetuserinfo='getUserInfoHandle' class="getUserInfo" wx:if="{{getUserInfo}}"></button>
+    </view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  import api from '../api/api'
+
+  import load from '../components/load'
+
+  export default class Login extends wepy.page {
+    onLoad() {
+      this.options = wepy.getStorageSync('options')
+      // 进入页面微信登录、接口登录
+      // wepy.login().then(res => {
+      //   this.wxcode = res.code
+      //   this.doUserLogin(res.code)
+      //   this.$apply()
+      // })
+    }
+
+    onShow() {
+      setTimeout(() => {
+        this.loading = true
+        this.$apply()
+      }, 1000)
+      // 进入页面微信登录、接口登录
+      wepy.login().then(res => {
+        this.wxcode = res.code
+        wepy.showLoading({
+          title: '登录中...',
+          mask: false
+        })
+        this.doUserLogin(res.code)
+        this.$apply()
+      })
+      if (wepy.getStorageSync('userInfo')) {
+        this.getUserInfo = false
+      }
+      // setTimeout(() => {
+      //   this.loading = true
+      //   this.$apply()
+      // }, 1000)
+    }
+    onHide() {
+      setTimeout(() => {
+        this.loading = false
+        this.$apply()
+      }, 1000)
+    }
+    config = {
+      navigationBarTitleText: '集泰在线商城',
+      'usingComponents': {
+        'i-modal': '../components/iView-components/modal/index'
+      }
+    }
+    components = {
+      load
+    }
+    data = {
+      yqcode: '',
+      loading: false,
+      sessionId: '',
+      wxcode: '',
+      reg: /^1[3|4|5|6|7|8|9][0-9]{9}$/,
+      getUserInfo: true,
+      getCode: true,
+      time: 60,
+      isCode: false,
+      isChecked: false,
+      action: [{color: '#1f80b0', name: '确定'}],
+      phone: '',
+      code: '',
+      interval: '',
+      options: {}
+    }
+    methods = {
+      // 微信授权
+      getUserInfoHandle(e) {
+        console.log(e.detail)
+        if (e.detail.errMsg === 'getUserInfo:ok') {
+          this.getUserInfo = false
+          // 更新用户信息
+          let options = {
+            encryptedData: e.detail.encryptedData,
+            iv: e.detail.iv,
+            rawData: e.detail.rawData,
+            signature: e.detail.signature,
+            session3rd: wepy.getStorageSync('session3rd')
+          }
+          this.updateUser(options)
+          wepy.setStorageSync('userInfo', e.detail.userInfo)
+        } else if (e.detail.errMsg === 'getUserInfo:fail auth deny') {
+          wepy.showToast({
+            title: '授权后才能绑定手机噢',
+            icon: 'none',
+            duration: 2000,
+            mask: true
+          })
+        }
+      },
+      // 验证手机号
+      checkPhone(e) {
+        this.phone = e.detail.value
+        wepy.setStorageSync('phone', e.detail.value)
+      },
+      // 输入获取验证码
+      checkCode(e) {
+        this.code = e.detail.value
+      },
+      // 邀请码
+      getYqcode(e) {
+        this.yqcode = e.detail.value
+      },
+      // 确定登录+绑定手机+获取邀请码
+      login() {
+        if (!this.reg.test(this.phone)) {
+          this.isChecked = true
+        } else if (!this.code) {
+          wepy.showToast({
+            title: '请输入验证码',
+            icon: 'none',
+            duration: 2000,
+            mask: false
+          })
+        } else if (this.code && this.reg.test(this.phone)) {
+          wepy.showLoading({
+            title: '登录成功',
+            icon: 'success',
+            duration: 2000,
+            mask: false
+          }).then(() => {
+            // 记录会员信息
+            // wepy.checkSession().then(res => {
+            //   console.log(res, 'check')
+            //   if (res.errMsg !== 'checkSession:ok') {
+            //     wepy.login().then(res => {
+            //       this.wxcode = res.code
+            //       this.$apply()
+            //     })
+            //   }
+            // })
+            this.DoBindPhone(this.phone, this.code)
+            // 兑换折扣券
+            if (this.yqcode) {
+              this.getCoupons(this.yqcode)
+            }
+            // this.updateUser(this.options)
+            wepy.hideLoading()
+          })
+        }
+      },
+      // 关闭提示
+      closeTipModal() {
+        this.isChecked = false
+      }
+      // 添加一个邀请码兑换优惠券接口！！！
+      // 后台添加用户的备注信息
+      // 小程序库存数据的修改
+    }
+    // 60s后再次获取验证码
+    getCodeHandle() {
+      if (!this.reg.test(this.phone)) {
+        this.isChecked = true
+      } else {
+        // 发送验证码请求
+        api.getValidationCode({
+          data: {
+            tel: this.phone
+          },
+          method: 'POST'
+        }).then(res => {
+          console.log(res, '验证码')
+          // 发送短信信息
+          wepy.showToast({
+            title: res.message,
+            icon: 'none',
+            duration: 2000,
+            mask: false
+          })
+          if (res.code === '200') {
+            this.getCode = false
+            this.isCode = true
+            this.interval = setInterval(() => {
+              this.time--
+              this.$apply()
+              if (this.time === 0) {
+                clearInterval(this.interval)
+                this.getCode = true
+                this.isCode = false
+                this.time = 60
+                this.$apply()
+              }
+            }, 1000)
+          }
+        })
+      }
+    }
+    // 更新用户信息接口
+    updateUser(options) {
+      api.userInfoUpdate({
+        data: options,
+        method: 'POST'
+      }).then(res => {
+        console.log(res, '更新会员信息')
+      })
+    }
+    // 用户登录接口
+    doUserLogin(code) {
+      api.doLogin({
+        data: {
+          code: code
+        },
+        method: 'POST'
+      }).then(res => {
+        console.log(res, '接口登录')
+        if (res.data.code === '200') {
+          wepy.hideLoading()
+          this.loading = true
+          wepy.setStorageSync('session3rd', res.data.extraData.session3rd)
+          // 设置sessionId
+          if (res && res.header && res.header['Set-Cookie']) {
+            wepy.setStorageSync('sessionId', res.header['Set-Cookie'])
+            this.sessionId = res.header['Set-Cookie']
+            this.$apply()
+          }
+          // 检查是否绑定手机
+          api.userIsBindPhone({
+            data: {
+              session3rd: res.data.extraData.session3rd
+            },
+            method: 'POST'
+          }).then(res => {
+            // wepy.hideLoading()
+            console.log(res, '是否绑定手机')
+            if (res.code === '3718') {
+              this.loading = false
+              wepy.switchTab({ url: '/pages/index' })
+            }
+          })
+        }
+      })
+    }
+    // 绑定手机号
+    DoBindPhone(phone, yzcode) {
+      api.userDoBindPhone({
+        data: {
+          phone: phone,
+          yzcode: yzcode,
+          session3rd: wepy.getStorageSync('session3rd')
+        },
+        method: 'POST'
+      }).then(res => {
+        console.log(res, '绑定手机')
+        if (res.code !== '200') {
+          wepy.showToast({
+            title: res.message,
+            icon: 'none',
+            duration: 2000,
+            mask: false
+          })
+        } else {
+          wepy.switchTab({ url: '/pages/index' })
+        }
+      })
+    }
+    // 换取优惠券
+    getCoupons(code) {
+      api.exchangeCode({
+        data: {
+          session3rd: this.session3rd,
+          code: code
+        },
+        method: 'POST'
+      }).then(res => {
+        console.log(res, '兑换折扣券')
+      })
+    }
+  }
+</script>

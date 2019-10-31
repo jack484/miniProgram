@@ -1,0 +1,220 @@
+<template>
+  <view class="search">
+    <!-- 搜索框 -->
+    <view class="search-section">
+      <view class="search-pancel">
+        <image src='../icon/search.png' class="icon-search"/>
+        <image src='../icon/delect_icon@3x.png' class="icon-close" wx:if="{{keyWord}}" bind:tap='clearKeyWord'/>
+        <input class="search-input" placeholder="搜索专业" value='{{keyWord}}' bindblur='searchBlur' bindinput='searchInput' focus/>
+        <view class="search-button">搜索</view>
+      </view>
+    </view>
+    <!-- 历史记录 -->
+    <view class="searchHistory" wx:if='{{!schoolList.length}}'>历史记录</view>
+    <scroll-view scroll-y="true" style="white-space: nowrap;width: 100%;height:88%;position:absolute; top:155rpx; left:0rpx;">
+      <!-- 历史记录列表 -->
+      <view class="searchHistoryList" wx:if='{{!schoolList.length}}'>
+        <block wx:for='{{historyList}}' wx:key='index'>
+          <view class="searchHistoryListItem" bindtap='enterValue({{historyList[historyList.length-1-index]}})'>
+            <image src='../icon/search.png' class="icon-search" />
+            <image src='../icon/gray_arrow_rignt@3x.png' class="icon-right"/>
+            {{historyList[historyList.length-1-index]}}
+          </view>
+        </block>
+        <view class="clearSearchHistory" wx:if='{{historyList.length}}' bindtap='clearAllHistory'>
+          清除历史记录
+        </view>
+        <view class="noHistory" wx:if='{{!historyList.length}}'>暂无搜索历史</view>
+      </view>
+      <!-- 模糊搜索展示列表 -->
+      <view class="searchHistoryList">
+        <block wx:for='{{schoolList}}' wx:key='index'>
+          <view class="searchHistoryListItem" bind:tap='jumpToSchool({{item}})'>
+            <image src='../icon/search.png' class="icon-search" />
+            <image src='../icon/gray_arrow_rignt@3x.png' class="icon-right"/>
+            {{item.name}}
+          </view>
+        </block>
+      </view>
+    </scroll-view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+
+import api from '../api/api'
+
+export default class SearchSubject extends wepy.page {
+  onLoad() {
+    this.historyList = wepy.getStorageSync('subjectHistory')
+  }
+  data = {
+    historyList: [],
+    schoolList: [],
+    keyWord: ''
+  }
+  methods = {
+    clearKeyWord() {
+      this.keyWord = ''
+    },
+    // 跳转到学校,保存本地浏览记录
+    jumpToSchool(info) {
+      wepy.showLoading({
+        title: '搜索专业',
+        mask: true
+      }).then(() => {
+        wepy.navigateTo({ url: `/pages/subjectDetails?pageTitle=${info.name}&code=${info.code}` })
+        wepy.hideLoading()
+        this.schoolList = []
+      })
+    },
+    // 输入框失焦触发
+    searchBlur(e) {
+      this.keyWord = e.detail.value
+      if (!this.historyList) {
+        this.historyList = []
+      }
+      // 将历史记录存储
+      if (this.keyWord !== '') {
+        this.historyList.push(this.keyWord)
+      }
+      this.historyList = Array.from(new Set(this.historyList))
+      wepy.setStorageSync('subjectHistory', this.historyList)
+    },
+    // 输入框值发生变化触发--匹配出学校
+    searchInput(e) {
+      // console.log(e.detail.value, 'input')
+      this.keyWord = e.detail.value
+      // 如果没有关键字就将学校清空
+      if (this.keyWord === '') {
+        this.schoolList = []
+      }
+      this.searchKWSub(this.keyWord)
+    },
+    enterValue(value) {
+      // 点击可以进行搜索功能
+      console.log(value)
+      this.keyWord = value
+      this.searchKWSub(value)
+    },
+    // 清除历史记录
+    clearAllHistory() {
+      wepy.setStorageSync('subjectHistory', [])
+      this.historyList = []
+    }
+  }
+  searchKWSub(value) {
+    api.searchSubject({
+      data: {
+        kw: value
+      }
+    }).then(res => {
+      console.log(res, 'bulr')
+      if (res.code === '200') {
+        this.schoolList = res.extraData
+        this.$apply()
+      }
+    })
+  }
+}
+</script>
+<style lang="less" scoped>
+.search-section{
+  height: 110rpx;
+  background-color: #5aa9ff;
+  padding: 20rpx 0;
+  box-sizing: border-box;
+  .search-pancel{
+    display: flex;
+    .search-input{
+      width: 550rpx;
+      background-color: #fff;
+      height: 70rpx;
+      font-size: 30rpx;
+      color: #999;
+      border-radius: 35rpx;
+      padding-left: 60rpx;
+      margin-left: 20rpx;
+    }
+    .icon-search{
+      width: 30rpx;
+      height: 30rpx;
+      position: absolute;
+      top: 39rpx;
+      left: 40rpx;
+    }
+    .search-button{
+      width: 120rpx;
+      text-align: center;
+      border: none;
+      color: #fff;
+      background-color: #5aa9ff;
+      height: 70rpx;
+      line-height: 70rpx;
+      font-size: 26rpx;
+    }
+  }
+}
+.searchHistory{
+  height: 55rpx;
+  line-height: 55rpx;
+  padding-left: 20rpx;
+  font-size: 26rpx;
+  background-color: #f2f5f7;
+  color: #999;
+  position: relative;
+}
+.searchHistoryList{
+  .searchHistoryListItem{
+    height: 100rpx;
+    line-height: 100rpx;
+    border-bottom: 1rpx solid #dcdcdc;
+    font-size: 26rpx;
+    padding-left: 70rpx;
+    position: relative;
+    .icon-search{
+      width: 30rpx;
+      height: 30rpx;
+      position: absolute;
+      top: 34rpx;
+      left: 20rpx;
+    }
+    .icon-right{
+      width: 20rpx;
+      height: 40rpx;
+      position: absolute;
+      top: 30rpx;
+      right: 20rpx;
+    }
+  }
+}
+.clearSearchHistory,
+.tip{
+  height: 125rpx;
+  line-height: 125rpx;
+  font-size: 26rpx;
+  text-align: center;
+  color: #999;
+  border-bottom: 1rpx solid #dcdcdc;
+}
+.icon-close{
+  position: absolute;
+  right: 140rpx;
+  top: 30rpx;
+  width: 50rpx;
+  height: 50rpx;
+  z-index: 10;
+}
+.noHistory{
+  width: 750rpx;
+  height: 100rpx;
+  text-align: center;
+  line-height: 100rpx;
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  font-size: 28rpx;
+  color: #999;
+}
+</style>

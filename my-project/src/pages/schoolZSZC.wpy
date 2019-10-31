@@ -1,0 +1,85 @@
+<template>
+    <view class="schoolZSZC">
+      <view class="schoolZSZC-title">
+        招生章程
+      </view>
+      <view class="schoolZSZC-content">
+        <import src="/plugins/wxParse/wxParse.wxml"></import>
+          <template is="wxParse" data="{{ wxParseData:article.nodes }}"></template>
+          <!-- {{content}} -->
+      </view>
+    </view>
+</template>
+<script>
+import wepy from 'wepy'
+
+import api from '../api/api'
+
+import WxParse from '../plugins/wxParse/wxParse'
+
+export default class SchoolZSZC extends wepy.page {
+  onLoad(options) {
+    console.log(options)
+    this.pageTitle = options.pageTitle
+    this.cid = options.cid
+    this.year = options.year
+    wepy.setNavigationBarTitle({ title: this.pageTitle })
+
+    this.getZSZCDesc(this.cid, this.year)
+  }
+  config = {
+    navigationBarBackgroundColor: '#fff',
+    navigationBarTextStyle: 'black'
+  }
+  data = {
+    pageTitle: '',
+    cid: '',
+    year: '',
+    content: ''
+  }
+  // 获取详细的章程
+  getZSZCDesc(cid, year) {
+    api.getSchoolInfoJJzszcContent({
+      method: 'POST',
+      data: {
+        cid: cid,
+        year: year
+      }
+    }).then(res => {
+      console.log(res)
+      if (res.code === '200') {
+        this.content = res.extraData
+        var that = this
+        WxParse.wxParse('article', 'html', this.content, that, 0)
+        this.$apply()
+      }
+    })
+  }
+}
+</script>
+<style lang="less" scoped>
+// 引入富文本样式
+@import '../plugins/wxParse/wxParse.wxss';
+.schoolZSZC{
+  background-color: #f2f5f7;
+  &-title{
+    background-color: #fff;
+    height: 88rpx;
+    line-height: 88rpx;
+    width: 750rpx;
+    text-align: center;
+    font-size: 32rpx;
+    border-top: 1rpx solid #dcdcdc;
+    border-bottom: 1rpx solid #dcdcdc;
+    font-weight: 600;
+  }
+  &-content{
+    background-color: #fff;
+  }
+  .WxEmojiView{
+    // &:nth-child(1) {
+      color: #0094ff;
+    // }
+  }
+}
+</style>

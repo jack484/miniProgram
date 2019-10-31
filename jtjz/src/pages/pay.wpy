@@ -1,0 +1,927 @@
+<style lang="less">
+.pay{
+  // height: 100vh;
+  background-color: #f5f5f5;
+  overflow: hidden;
+  &-address{
+    padding: 30rpx 45rpx;
+    .content{
+      border: 2rpx dotted #19a78f;
+      position: relative;
+      background-color: #fff;
+      image{
+        width: 13rpx;
+        height: 20rpx;
+        position: absolute;
+        right: 28rpx;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+    }
+    &-base{
+      height: 66rpx;
+      display: flex;
+      font-size: 30rpx;
+      line-height: 66rpx;
+      color: #333;
+      &-name,
+      &-phone{
+        flex: 1;
+        padding-left: 25rpx;
+        text{
+          padding-left: 25rpx;
+        }
+      }
+      &-phone{
+        padding-left: 0;
+        // margin-left: -100rpx;
+      }
+    }
+    &-desc{
+      color: #999;
+      padding-left:25rpx;
+      padding-right:72rpx;
+      font-size: 26rpx;
+      line-height: 36rpx;
+      height: 62rpx;
+      margin-bottom: 20rpx;
+    }
+  }
+  &-goods{
+    margin-bottom: 20rpx;
+    &-list{
+      &-item{
+        margin-bottom: 20rpx;
+        height: 230rpx;
+        background-color: #fff;
+        display: flex;
+        padding: 25rpx 30rpx;
+        box-sizing: border-box;
+        position: relative;
+        font-size: 28rpx;
+        color: #333;
+        &:last-child {
+          margin-bottom: 0rpx;
+        }
+        &-left{
+          margin-right: 20rpx;
+          &-img{
+            width: 180rpx;
+            height: 180rpx;
+            background-color: #f5f5f5;
+          }
+        }
+        &-right{
+          width: 360rpx;
+          position: relative;
+          &-base{
+            margin-bottom: 50rpx;
+            line-height: 36rpx;
+            .size{
+              text{
+                margin-right: 20rpx;
+              }
+            }
+          }
+          &-desc{
+            display: flex;
+            justify-content: space-between;
+            &-num{
+              display: flex;
+              overflow: hidden;
+              border: 1rpx solid #999;
+              position: absolute;
+              right: -120rpx;
+              bottom: 0rpx;
+              .numBtn{
+                width: 40rpx;
+                height: 40rpx;
+                line-height: 40rpx;
+                padding: 0;
+                margin: 0;
+                border-radius: 0;
+                text-align: center;
+                box-sizing: border-box;
+                color: #16aa8d;
+                &-left{
+                  border-right: 1rpx solid #999;
+                }
+                &-right{
+                  border-left: 1rpx solid #999;
+                }
+              }
+              input{
+                width: 100rpx;
+                height: 38rpx;
+                line-height: 38rpx;
+                text-align: center;
+                font-size: 22rpx;
+                min-height: 0;
+                color: #333;
+              }
+            }
+            &-price{
+              position: absolute;
+              bottom: 0rpx;
+              left: 0;
+              color: #ff4e4e;
+              font-weight: 600;
+            }
+          }
+        }
+      }
+    }
+    &-count{
+      display: flex;
+      justify-content: flex-end;
+      font-size: 28rpx;
+      background-color: #fff;
+      height: 63rpx;
+      line-height: 63rpx;
+      padding-right: 25rpx;
+      .totalNum{
+        margin-right: 25rpx;
+      }
+      .totalPrice{
+        text{
+          color: #ff4e4e;
+          font-weight: 600;
+        }
+      }
+    }
+  }
+  &-discount{
+    position: relative;
+    &-yes{
+      height: 80rpx;
+      padding: 10rpx 30rpx;
+      background-color: #fff;
+      font-size: 26rpx;
+      display: flex;
+      justify-content: space-between;
+      color: #333;
+      margin-bottom: 20rpx;
+      box-sizing: border-box;
+      line-height: 60rpx;
+      &-right{
+        margin-right: 35rpx;
+      }
+      .active{
+        color: #1f80b0;
+      }
+      .noDiscount{
+        color: #999;
+      }
+    }
+    image{
+      width: 13rpx;
+      height: 20rpx;
+      position: absolute;
+      right: 28rpx;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+  }
+  &-total{
+    background-color: #fff;
+    font-size: 26rpx;
+    margin-bottom: 120rpx;
+    padding-top: 15rpx;
+    &-price,
+    &-discount{
+      height: 56rpx;
+      line-height: 56rpx;
+      box-sizing: border-box;
+      display: flex;
+      justify-content: space-between;
+      padding: 0rpx 25rpx;
+      &-number{
+        color: #ff4e4e;
+      }
+    }
+    &-actualPay{
+      border-top: 1rpx solid #dcdcdc;
+      height: 92rpx;
+      line-height: 92rpx;
+      position: relative;
+      text{
+        position: absolute;
+        bottom: 0;
+        right: 20rpx;
+        color: #ff4e4e;
+      }
+    }
+  }
+  &-wxpay{
+    height: 80rpx;
+    width: 750rpx;
+    color: #fff;
+    font-size: 28rpx;
+    text-align: center;
+    line-height: 80rpx;
+    background-color: rgb(38, 189, 38);
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    z-index: 3;
+    image{
+      width: 190rpx;
+      height: 52rpx;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%,-50%);
+    }
+  }
+  &-invoice{
+    height: 90rpx;
+    padding: 10rpx 30rpx;
+    background-color: #fff;
+    font-size: 26rpx;
+    color: #333;
+    margin-bottom: 20rpx;
+    box-sizing: border-box;
+    line-height: 70rpx;
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    .type{
+      margin-right: 35rpx;
+    }
+    image{
+      width: 13rpx;
+      height: 20rpx;
+      position: absolute;
+      right: 28rpx;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+  }
+  &-notice{
+    height: 90rpx;
+    display: flex;
+    font-size: 28rpx;
+    background-color: #fff;
+    margin-bottom: 20rpx;
+    color: #333;
+    padding-left: 30rpx;
+    position: relative;
+    &-title{
+      margin-right: 20rpx;
+      line-height: 90rpx;
+    }
+    input{
+      padding-left: 20rpx;
+      width: 500rpx;
+      height: 50rpx;
+      line-height: 50rpx;
+      margin-top: 20rpx;
+    //   border: 1rpx solid #dcdcdc;
+    }
+    &-count{
+      height: 20rpx;
+      font-size: 20rpx;
+      position: absolute;
+      bottom: 35rpx;
+      right: 30rpx;
+      color: #999;
+    }
+  }
+  .disabled{
+    color: #ccc!important;
+  }
+  .wordOF{
+    color: #ff4e4e!important;
+  }
+  .emptyTip{
+    height: 128rpx;
+    line-height: 128rpx;
+    width: 660rpx;
+    border: 2rpx dotted #19a78f;
+    background-color: #fff;
+    color: #999;
+    font-size: 28rpx;
+    text-align: center;
+  }
+  .payNow{
+    width: 750rpx;
+    height: 100vh;
+    font-size: 28rpx;
+    background-color: rgba(0,0,0,.3);
+    position: fixed;
+    z-index:10;
+    bottom: 0rpx;
+    left: 0;
+    .text{
+      background-color: #fff;
+      z-index: 30;
+      width: 100%;
+      height: 550rpx;
+      // background-color: #0094ff;
+      position: fixed;
+      bottom: 0rpx;
+      left: 0rpx;
+      .cancel{
+        // width: 160rpx;
+        // height: 50rpx;
+        line-height: 50rpx;
+        // border: 1rpx solid #1f80b0;
+        border-radius: 5rpx;
+        color: #999;
+        font-size: 26rpx;
+        margin-left: 20rpx;
+        margin-top: 20rpx;
+      }
+      .word{
+        margin-left: 240rpx;
+        width: 620rpx;
+        height: 80rpx;
+        border-radius: 5rpx;
+        line-height: 80rpx;
+        background-color: #fff;
+        color: #ff4e4e;
+        margin-bottom: 10rpx;
+      }
+      .btn{
+        margin-top: 290rpx;
+        margin-left: 80rpx;
+        color: #fff;
+        border-radius: 10rpx;
+        width: 600rpx;
+        height: 80rpx;
+        line-height: 80rpx;
+        background-color: rgb(38, 189, 38);
+        text-align: center;
+        position: relative;
+        image{
+          width: 190rpx;
+          height: 52rpx;
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%,-50%);
+        }
+      }
+    }
+  }
+}
+</style>
+<template>
+  <view class="pay">
+    <load wx:if='{{!loading}}'></load>
+    <view wx:if='{{loading}}'>
+      <view class="pay-address" bindtap='editAddress'>
+        <view class="content" wx:if="{{address.name}}">
+          <view class="pay-address-base">
+            <view class="pay-address-base-name">
+              <text>收货人:{{address.name}}</text>
+            </view>
+            <view class="pay-address-base-phone">
+              {{address.phone}}
+            </view>
+          </view>
+          <view class="pay-address-desc">
+            {{address.all}}
+          </view>
+          <image src='../images/you81px.png'/>
+        </view>
+        <view class="emptyTip" wx:if="{{!address.name}}">请选择地址</view>
+      </view>
+      <view class="pay-goods">
+        <view class="pay-goods-list">
+          <block wx:for='{{goodsList}}' wx:key='index'>
+            <view class="pay-goods-list-item">
+              <view class="pay-goods-list-item-left" bindtap='jumpToGoodDesc({{item.goods_id}})'>
+                 <!-- bindtap='jumpToGoodDesc({{item.id}})' -->
+                <!-- <view class="pay-goods-list-item-left-img"></view> -->
+                <image class="pay-goods-list-item-left-img" src="{{imgBaseUrl + item.goods_image}}"/>
+              </view>
+              <view class="pay-goods-list-item-right">
+                <view class="pay-goods-list-item-right-base">
+                  <view class="name">{{item.goods_name}}</view>
+                  <view class="size">
+                    <text>{{item.type}}</text>
+                    【颜色：{{item.checkd_color}}】
+                  </view>
+                  <view class="inventory">库存5件</view>
+                </view>
+                <view class="pay-goods-list-item-right-desc">
+                  <view class="pay-goods-list-item-right-desc-price">{{item.goods_price}}元</view>
+                  <view class="pay-goods-list-item-right-desc-num">
+                    <view bindtap='changeNum({{-1}},{{index}})' class="numBtn numBtn-left {{item.num <= 1 ? 'disabled' : ''}}">-</view>
+                    <input type="number" value='{{item.num}}' class="numTotal" bindinput='countNumberInput({{index}})'/>
+                    <view bindtap='changeNum({{1}},{{index}})' class="numBtn numBtn-right {{item.num >= item.sec_num ? 'disabled' : ''}}">+</view>
+                  </view>
+                </view>
+              </view>
+            </view>
+          </block>
+        </view>
+        <view class="pay-goods-count">
+          <view class="totalNum">共{{totalNum}}件商品</view>
+          <view class="totalPrice">小计：<text>￥{{totalPrice}}</text></view>
+        </view>
+      </view>
+      <view class="pay-notice">
+        <view class="pay-notice-title">备注</view>
+        <input placeholder='选填，给商家留言' value='{{noticeText}}' maxlength='50' bindinput='countTextLength' />
+        <view class="pay-notice-count {{wordCount >= 50 ? 'wordOF' : ''}}">{{wordCount}}/50</view>
+      </view>
+      <view class="pay-invoice" bindtap='getInvoiceInfo'>
+        <view>发票信息</view>
+        <!-- <view class="type">{{invoiceType}}{{invoiceContent}}</view> -->
+        <view class="type" wx:if="{{!invoiceInfo.invoice_type}}">
+          <text wx:if="{{!invoiceInfo.no}}">若开发票请选择</text>
+          <text wx:if="{{invoiceInfo.no}}">不开发票</text>
+        </view>
+        <view class="type" wx:if="{{invoiceInfo.invoice_type}}">
+          <view wx:if="{{invoiceInfo.invoice_type == 1}}">
+            普通发票
+            <text wx:if="{{invoiceInfo.invoice_title_type == 1}}">(公司)</text>
+            <text wx:if="{{invoiceInfo.invoice_title_type == 2}}">(个人)</text>
+          </view>
+          <view wx:if="{{invoiceInfo.invoice_type == 2}}">
+            电子发票
+            <text wx:if="{{invoiceInfo.invoice_title_type == 1}}">(公司)</text>
+            <text wx:if="{{invoiceInfo.invoice_title_type == 2}}">(个人)</text>
+          </view>
+        </view>
+        <image src='../images/you81px.png'/>
+      </view>
+      <view class="pay-discount"  bindtap='jumpToChooseDisCount'>
+        <image src='../images/you81px.png'/>
+        <view class="pay-discount-yes"  wx:if="{{discountArr.length != 0}}">
+          <view class="pay-discount-yes-left">
+            折扣券
+          </view>
+          <view class="pay-discount-yes-right active">
+            <text>{{discountText}}</text>
+            <text wx:if="{{!discountText}}">请选择折扣券</text>
+          </view>
+        </view>
+        <view class="pay-discount-yes" wx:if="{{discountArr.length == 0}}">
+          <view class="pay-discount-yes-left">
+            折扣券
+          </view>
+          <view class="pay-discount-yes-right noDiscount">
+            暂无可使用的折扣券
+          </view>
+        </view>
+      </view>
+      <view class="pay-total">
+        <view class="pay-total-price">
+          <view class="pay-total-price-title">商品总额</view>
+          <view class="pay-total-price-number">￥{{totalPrice}}</view>
+        </view>
+        <view class="pay-total-discount" wx:if="{{discount != 10 && discountArr.length != 0}}">
+          <view class="pay-total-discount-title">折扣</view>
+          <view class="pay-total-discount-number">
+            {{discountText}}
+          </view>
+        </view>
+        <view class="pay-total-actualPay">
+          <text>实际支付：￥{{actualPay}}</text>
+        </view>
+      </view>
+      <view class="pay-wxpay" bindtap='showwxpayHandle' wx:if="{{!wxpay}}">
+        <!-- <image src='../images/wxpay.png'/> -->
+        确认订单
+      </view>
+      <view class="payNow" wx:if="{{wxpay}}" bindtap="closewxpayHandle">
+        <view class="text" catchtap='showwxpayHandle'>
+          <text catchtap='closewxpayHandle' class="cancel">x</text>
+          <view class="word">实际付款：￥{{actualPay}}</view>
+          <view class="btn" catchtap='wxpayHandle'>
+            <image src='../images/wxpay.png'/>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  import api from '../api/api'
+
+  // import com from '../utils/common'
+
+  import load from '../components/load'
+
+  export default class Pay extends wepy.page {
+    onLoad(opt) {
+      if (opt.type === 'buyNow') {
+        this.type = opt.type
+        // 获取立即购买的商品信息
+        let payGood = {
+          goods_image: opt.image,
+          goods_name: opt.name,
+          goods_id: opt.id,
+          goods_price: +opt.price,
+          num: +opt.num,
+          type: opt.size,
+          checkd_color: opt.color,
+          sec_num: +opt.sec_num
+        }
+        this.goodsList[0] = payGood
+      }
+
+      // 获取最低折扣券
+      this.getMyDiscount(wepy.getStorageSync('session3rd'))
+    }
+    onShow() {
+      setTimeout(() => {
+        this.loading = true
+        this.$apply()
+      }, 500)
+      this.session3rd = wepy.getStorageSync('session3rd')
+      // 获取用户选择的折扣券信息
+      if (wepy.getStorageSync('discount')) {
+        this.discount = wepy.getStorageSync('discount')
+        this.discountText = wepy.getStorageSync('discountText')
+      }
+
+      // 判断从立即购买或结算点击进来
+      if (this.type !== 'buyNow') {
+        // 结算：获取购物车中被选中的商品
+        this.getMyCart()
+      }
+
+      // 获取发票全部信息
+      this.invoiceInfo = wepy.getStorageSync('invoiceInfo') || {}
+      // 获取最顶上的收货地址
+      this.address = wepy.getStorageSync('payAddress')
+
+      // 获取发票信息
+      // this.invoiceContent = wepy.getStorageSync('invoiceContent') || '不开发票'
+      // this.invoiceType = wepy.getStorageSync('invoiceType')
+    }
+    onHide() {
+      setTimeout(() => {
+        this.loading = false
+        this.$apply()
+      }, 500)
+    }
+    config = {
+      navigationBarTitleText: '确认订单'
+    }
+    components = {
+      load
+    }
+    data = {
+      // imgBaseUrl: 'http://192.168.8.90',
+      imgBaseUrl: 'https://oa.jointas.com',
+      invoiceType: '',
+      invoiceContent: '',
+      loading: false,
+      type: '',
+      noticeText: '',
+      wordCount: 0,
+      totalPrice: 0,
+      totalNum: 0,
+      actualPay: 0,
+      discount: 0,
+      discountText: '',
+      discountArr: [],
+      pay: {},
+      goodsList: [],
+      address: {},
+      invoiceInfo: {},
+      wxpay: false,
+      ispaying: false,
+      card_id: []
+    }
+    methods = {
+      // 关闭微信支付
+      closewxpayHandle() {
+        this.wxpay = false
+      },
+      // 显示微信支付
+      showwxpayHandle() {
+        if (this.address) {
+          this.wxpay = true
+        } else {
+          wepy.showToast({
+            title: '请先选择收货地址',
+            icon: 'none',
+            duration: 2000,
+            mask: false
+          })
+        }
+      },
+      // 编辑地址
+      editAddress() {
+        wepy.navigateTo({ url: `/pages/address?type=pay` })
+      },
+      // 跳转选择折扣券
+      jumpToChooseDisCount() {
+        wepy.navigateTo({ url: `/pages/discount?type=choose` })
+      },
+      // 微信支付
+      wxpayHandle() {
+        // wepy.requestPayment()
+        // wepy.navigateTo({ url: '/pages/successPay' })
+        // 处理商品数据--商品id：商品数量
+        let goodsInfo = {}
+        if (this.type !== 'buyNow') {
+        //   console.log('gouwuche')
+          var self = this
+        // 如果是从结算进入
+          this.goodsList.forEach((item, index) => {
+            // console.log(self.card_id)
+            self.card_id.push(item.id)
+            var temp = {}
+            temp['goods_id'] = item.goods_id
+            temp['goods_num'] = +item.num
+            temp['color'] = item.checkd_color
+            goodsInfo[index] = temp
+            // goodsInfo[item.goods_id] = +item.num
+          })
+        } else {
+          // 如果是从立即购买进入
+          var temp = {}
+          temp['goods_id'] = this.goodsList[0].goods_id
+          temp['goods_num'] = +this.totalNum
+          temp['color'] = this.goodsList[0].checkd_color
+          goodsInfo[0] = temp
+        //   goodsInfo[this.goodsList[0].goods_id] = +this.totalNum
+        }
+        // console.log('goodsInfo', goodsInfo)
+        let option = {
+          session3rd: this.session3rd,
+          // 地址id
+          addr_id: this.address.id,
+          // 订单备注
+          mark: this.noticeText,
+          // 发票id
+          invoice_id: this.invoiceInfo.id,
+          // 优惠券id
+          coupons_id: wepy.getStorageSync('coupons_id').id,
+          // 订单总价
+          total_price: this.actualPay.toString(),
+          // 商品信息（json格式 商品id为key,商品数量为value）
+          goods_info: JSON.stringify(goodsInfo),
+          car_id: this.card_id.join(',')
+        }
+        console.log(option, 'option')
+        // 要将基本信息填写完整(地址)才发起订单创建请求
+        if (!option.addr_id) {
+          this.ispaying = false
+          this.$apply()
+          wepy.showToast({
+            title: '请先选择收货地址',
+            icon: 'none',
+            duration: 2000,
+            mask: false
+          })
+        } else {
+          if (this.ispaying === false) {
+            this.createNewOrder(option)
+            console.log(option, 'option')
+          }
+        }
+      },
+      // 获取发票信息
+      getInvoiceInfo() {
+        // wepy.navigateTo({ url: '/pages/invoice' })
+        wepy.navigateTo({ url: `/pages/myInvoice?type=pay` })
+      },
+      // 计算备注
+      countTextLength(e) {
+        this.noticeText = e.detail.value
+      },
+      // 修改商品数量
+      changeNum(num, index) {
+        if (this.goodsList[index].sec_num) {
+          this.goodsList[index].num += num
+          if (this.goodsList[index].num < 1) {
+            this.goodsList[index].num = 1
+          } else if (this.goodsList[index].num > this.goodsList[index].sec_num) {
+            this.goodsList[index].num = this.goodsList[index].sec_num
+            wepy.showToast({
+              title: '商品数量不能大于库存剩余数量！',
+              icon: 'none',
+              duration: 2000,
+              mask: false
+            })
+          } else {
+            if (this.type !== 'buyNow') {
+              // 如果是从结算进入(如果是从立即购买进入--不保存到购物车-不编辑)
+              // 编辑商品数量
+              this.editMyCart(this.goodsList[index].num, this.goodsList[index].id, this.goodsList[index].checkd)
+            }
+          }
+        }
+      },
+      // 商品数量输入事件
+      countNumberInput(index, e) {
+        let inputNum = parseInt(e.detail.value)
+        let oldNum = this.goodsList[index].num
+        // 判断是否恶意输入值
+        if (inputNum < 1 || isNaN(inputNum)) {
+          this.goodsList[index].num = oldNum
+          if (this.type !== 'buyNow') {
+            this.editMyCart(this.goodsList[index].num, this.goodsList[index].id, +this.goodsList[index].checkd)
+          }
+          return oldNum
+        } else if (inputNum > this.goodsList[index].sec_num) {
+          this.goodsList[index].num = this.goodsList[index].sec_num
+          wepy.showToast({
+            title: '商品数量不能大于库存剩余数量！',
+            icon: 'none',
+            duration: 2000,
+            mask: false
+          })
+          if (this.type !== 'buyNow') {
+            this.editMyCart(this.goodsList[index].num, this.goodsList[index].id, +this.goodsList[index].checkd)
+          }
+          return this.goodsList[index].sec_num
+        } else {
+          this.goodsList[index].num = inputNum
+          if (this.type !== 'buyNow') {
+            this.editMyCart(this.goodsList[index].num, this.goodsList[index].id, +this.goodsList[index].checkd)
+          }
+          return inputNum
+        }
+      },
+      // 点击图片跳转到商品详情
+      jumpToGoodDesc(id) {
+        wepy.navigateTo({ url: `/pages/goodDetails?id=${id}` })
+      }
+    }
+    // 获取我的折扣券--获取最低(未完成)
+    getMyDiscount(session3rd) {
+      api.getMyCode({
+        data: {
+          session3rd: session3rd
+        },
+        method: 'POST'
+      }).then(res => {
+        // let temp = []
+        // let ids = []
+        console.log(res, '折扣券列表')
+        this.discountArr = res.extraData.info
+        // 加载最低的折扣券--存起来（没做）
+        // this.discountArr.forEach((item, index) => {
+          // 所有折扣数字存起来
+          // temp.push(+item.discount)
+          // ids.push(item.id)
+        // })
+        // this.discount = Math.min.apply(null, temp)
+        // this.discountText = Math.min.apply(null, temp) + '折优惠券'
+        // 最低折扣
+        // wepy.setStorageSync('discount', this.discount)
+        // wepy.setStorageSync('discountText', this.discountText)
+
+        for (let i = 0; i < this.discountArr.length - 1; i++) {
+          this.discountArr[i].discount = +this.discountArr[i].discount
+          // for (let j = 0; j < this.discountArr.length - 1 - i; j++) {
+          //   if (this.discountArr[j].discount > this.discountArr[j + 1]) {
+          //     let temp = this.discountArr[j]
+          //     this.discountArr[j] = this.discountArr[j + 1]
+          //     this.discountArr[j + 1] = temp
+          //   }
+          // }
+        }
+        // console.log(this.discountArr, '最低')
+        this.$apply()
+      })
+    }
+    // 获取我的购物车
+    getMyCart() {
+      api.getCart({
+        data: {
+          session3rd: this.session3rd
+        },
+        method: 'POST'
+      }).then(res => {
+        console.log(res, '购物车列表')
+        this.goodsList = []
+        if (res.code === '200') {
+          // 筛选出被选中的商品
+          res.extraData.info.forEach((item) => {
+            if (item.checkd === '1') {
+              this.goodsList.push(item)
+            }
+          })
+          // this.goodsList = res.extraData.info
+          // 将字符串数字转成数字
+          let arr = []
+          for (let i = 0; i < this.goodsList.length; i++) {
+            this.goodsList[i].num = +this.goodsList[i].num
+            this.goodsList[i].sec_num = +this.goodsList[i].sec_num
+            this.goodsList[i].checkd = +this.goodsList[i].checkd
+            if (this.goodsList[i].checkd) {
+              arr.push(+this.goodsList[i].id)
+              this.selectArr = [...new Set(arr)]
+            }
+          }
+          this.$apply()
+        }
+      })
+    }
+    // 编辑购物车
+    editMyCart(num, id, checkd) {
+      api.editCart({
+        data: {
+          session3rd: this.session3rd,
+          num: num,
+          id: id,
+          checkd: +checkd
+        },
+        method: 'POST'
+      }).then(res => {
+        console.log(res, '编辑购物车商品状态')
+      })
+    }
+    // 创建订单
+    createNewOrder(option) {
+      this.ispaying = true
+      this.$apply()
+      api.creatOrder({
+        data: option,
+        method: 'POST'
+      }).then(res => {
+        console.log(res, '创建订单')
+        if (res.code === '200') {
+          // 发起预支付
+          this.doPrePayOrder(res.extraData.order_code, this.actualPay, this.session3rd)
+        } else {
+          this.ispaying = false
+          this.$apply()
+        }
+      })
+    }
+    // 发起预支付
+    doPrePayOrder(orderCode, money, session3rd) {
+      api.prePayOrder({
+        data: {
+          order_code: orderCode,
+          money: money + '',
+          session3rd: session3rd
+        },
+        method: 'POST'
+      }).then(res => {
+        console.log(res, '预支付')
+        if (res.code === '200') {
+          // 微信支付
+          wepy.requestPayment({
+            timeStamp: res.extraData.timeStamp,
+            nonceStr: res.extraData.nonceStr,
+            package: res.extraData.package,
+            signType: res.extraData.signType,
+            paySign: res.extraData.paySign
+          })
+          .then(res => {
+            console.log(res, '微信支付')
+            if (res.errMsg === 'requestPayment:ok') {
+              // 支付成功
+              wepy.navigateTo({ url: '/pages/successPay' })
+            } else if (res.errMsg === 'requestPayment:fail cancel') {
+              wepy.showToast({
+                title: '订单未支付!',
+                icon: 'none',
+                duration: 2000,
+                mask: false
+              })
+            }
+          })
+        }
+        this.ispaying = false
+        this.$apply()
+      })
+    }
+    computed = {
+      // 实际支付：
+      actualPay() {
+        // if (this.discountArr.length !== 0) {
+        //   this.actualPay = this.totalPrice * this.discount / 10
+        // } else {
+        //   this.actualPay = this.totalPrice
+        // }
+        // this.actualPay = this.totalPrice * this.discount / 10
+        // return this.actualPay
+      },
+      // 文本长度
+      noticeText() {
+        this.wordCount = this.noticeText.length
+        return this.noticeText
+      },
+      // 折扣前总额
+      goodsList() {
+        this.totalPrice = 0
+        this.totalNum = 0
+        this.goodsList.forEach(item => {
+          this.totalNum += item.num
+          this.totalPrice += item.num * item.goods_price
+          if (!this.discount) {
+            this.discount = 10
+          }
+          this.actualPay = (this.totalPrice * this.discount / 10).toFixed(2)
+        })
+        return this.goodsList
+      }
+    }
+  }
+</script>

@@ -1,0 +1,113 @@
+<template>
+    <view class="scholarship">
+      <view class="scholarship-title">
+        奖助学金
+      </view>
+      <view class="scholarship-content">
+        <block wx:for='{{kindOfScholarship}}' wx:key='index'>
+          <view class="scholarship-content-desc">
+            <view class="scholarship-content-desc-name">
+              名称：{{item.ming}}
+              <image class="icon-name" src='../icon/bonus_icon1@3x.png'/>
+            </view>
+            <view class="scholarship-content-desc-price">
+              金额：{{item.edu}}/人
+              <image class="icon-price" src='../icon/bonus_icon2@3x.png' />
+            </view>
+            <view class="scholarship-content-desc-condition"><text>获奖条件：</text>{{item.biaozhun}}</view>
+          </view>
+        </block>
+      </view>
+    </view>
+</template>
+<script>
+import wepy from 'wepy'
+
+import api from '../api/api'
+
+export default class Scholarship extends wepy.page {
+  onLoad(options) {
+    console.log(options)
+    this.pageTitle = options.pageTitle
+    this.cid = options.cid
+    wepy.setNavigationBarTitle({ title: this.pageTitle })
+
+    // 获取学校奖学金
+    wepy.showLoading({
+      title: '加载奖学金',
+      mask: true
+    }).then(() => {
+      api.getSchoolInfoJJjxj({
+        data: {cid: this.cid}
+      }).then(res => {
+        if (res.code === '200') {
+          this.kindOfScholarship = res.extraData.jxj
+          this.$apply()
+          wepy.hideLoading()
+        }
+        console.log(res, '奖学金')
+      })
+    })
+  }
+  config = {
+    navigationBarBackgroundColor: '#fff',
+    navigationBarTextStyle: 'black'
+  }
+  data = {
+    pageTitle: '',
+    cid: '',
+    kindOfScholarship: []
+  }
+}
+</script>
+<style lang="less" scoped>
+.scholarship{
+  background-color: #f2f5f7;
+  &-title{
+    background-color: #fff;
+    height: 90rpx;
+    line-height: 90rpx;
+    width: 750rpx;
+    text-align: center;
+    font-size: 28rpx;
+    margin-bottom: 14rpx;
+    border-top: 1rpx solid #dcdcdc;
+  }
+  &-content{
+    &-desc{
+      background-color: #fff;
+      border-bottom: 1rpx solid #dcdcdc;
+      padding: 30rpx 20rpx 0;
+      font-size: 26rpx;
+      box-sizing: border-box;
+      &-name{
+        margin-bottom: 20rpx;
+        color: #5ba8ff;
+        padding-left: 60rpx;
+        position: relative;
+      }
+      &-price{
+        margin-bottom: 17rpx;
+        color: #fb4041;
+        padding-left: 60rpx;
+        position: relative;
+      }
+      .icon-name,
+      .icon-price{
+        width: 36rpx;
+        height: 36rpx;
+        position: absolute;
+        top: -1rpx;
+        left: 0rpx;
+      }
+      &-condition{
+        line-height: 42rpx;
+        color: #999;
+        text{
+          color: #333;
+        }
+      }
+    }
+  }
+}
+</style>

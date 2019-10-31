@@ -1,0 +1,84 @@
+<template>
+    <view class="studentAdmissions">
+      <view class="studentAdmissions-title">
+        招生章程
+      </view>
+      <view class="studentAdmissions-content">
+        <block wx:for='{{years}}' wx:key='index'>
+          <view class="studentAdmissions-content-year" bindtap='jumpTozszcDesc({{item}})'>
+            {{item}}招生章程
+          </view>
+        </block>
+      </view>
+    </view>
+</template>
+<script>
+import wepy from 'wepy'
+
+import api from '../api/api'
+
+export default class StudentAdmissions extends wepy.page {
+  onLoad(options) {
+    console.log(options)
+    this.pageTitle = options.pageTitle
+    this.cid = options.cid
+    wepy.setNavigationBarTitle({ title: this.pageTitle })
+
+    api.getSchoolInfoJJzszcYear({
+      method: 'POST',
+      data: {
+        cid: this.cid
+      }
+    }).then(res => {
+      console.log(res, '年份')
+      if (res.code === '200') {
+        this.years = res.extraData
+        this.$apply()
+      }
+    })
+  }
+  config = {
+    navigationBarBackgroundColor: '#fff',
+    navigationBarTextStyle: 'black'
+  }
+  data = {
+    pageTitle: '',
+    cid: '',
+    years: []
+  }
+  methods = {
+    // 跳转到招生章程详情
+    jumpTozszcDesc(year) {
+      wepy.navigateTo({ url: `/pages/schoolZSZC?pageTitle=${this.pageTitle}&cid=${this.cid}&year=${year}` })
+    }
+  }
+}
+</script>
+<style lang="less" scoped>
+.studentAdmissions{
+  background-color: #f2f5f7;
+  &-title{
+    background-color: #fff;
+    height: 90rpx;
+    line-height: 90rpx;
+    width: 750rpx;
+    text-align: center;
+    font-size: 32rpx;
+    border-top: 1rpx solid #dcdcdc;
+    border-bottom: 1rpx solid #dcdcdc;
+    font-weight: 600;
+  }
+  &-content{
+    background-color: #fff;
+    &-year{
+      height: 120rpx;
+      width: 730rpx;
+      padding-left: 20rpx;
+      line-height: 120rpx;
+      font-size: 32rpx;
+      color: #333;
+      border-bottom: 1rpx solid #dcdcdc;
+    }
+  }
+}
+</style>

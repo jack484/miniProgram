@@ -1,0 +1,144 @@
+<style lang="less">
+.container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+</style>
+
+<script>
+import wepy from 'wepy'
+import 'wepy-async-function'
+
+import { setStore } from 'wepy-redux'
+import configStore from './store'
+
+const store = configStore()
+setStore(store)
+
+export default class extends wepy.app {
+  config = {
+    pages: [
+      'pages/login',
+      'pages/index',
+      'pages/cart',
+      'pages/_cart',
+      'pages/me',
+      'pages/address',
+      'pages/newAddress',
+      'pages/inviteCode',
+      'pages/discount',
+      'pages/getDiscount',
+      'pages/goodDetails',
+      'pages/pay',
+      'pages/invoice',
+      'pages/myOrder',
+      'pages/successPay',
+      'pages/myInvoice',
+      'pages/myCollection',
+      'pages/activity/getCoupon'
+    ],
+    window: {
+      backgroundTextStyle: 'light',
+      navigationBarBackgroundColor: '#fff',
+      navigationBarTitleText: 'WeChat',
+      navigationBarTextStyle: 'black'
+    },
+    tabBar: {
+      selectedColor: '#1f80b0',
+      list: [
+        {
+          pagePath: 'pages/index',
+          text: '首页',
+          iconPath: 'icon/index.png',
+          selectedIconPath: 'icon/index_active.png'
+        },
+        {
+          pagePath: 'pages/cart',
+          text: '购物车',
+          iconPath: 'icon/cart.png',
+          selectedIconPath: 'icon/cart_active.png'
+        },
+        {
+          pagePath: 'pages/me',
+          text: '我的',
+          iconPath: 'icon/me.png',
+          selectedIconPath: 'icon/me_active.png'
+        }
+      ]
+    }
+  }
+
+  globalData = {
+    userInfo: null,
+    imgBaseUrl: 'https://oa.jointas.com'
+  }
+
+  constructor () {
+    super()
+    this.use('requestfix')
+    this.use('promisify')
+    this.intercept('request', {
+      config(config) {
+        let session3rd = wepy.getStorageSync('session3rd') || ''
+        let sessionId = wepy.getStorageSync('sessionId') || ''
+        if (sessionId) {
+          config.header.session3rd = session3rd
+          config.header.Cookie = sessionId
+        }
+        return config
+      }
+      // // 请求成功后的回调函数
+      // success (p) {
+      //   // 可以在这里对收到的响应数据对象进行加工处理
+      //   console.log('request success: ', p)
+      //   // 必须返回响应数据对象，否则后续无法对响应数据进行处理
+      //   return p
+      // },
+      // // 请求失败后的回调函数
+      // fail (p) {
+      //   console.log('request fail: ', p)
+      //   // 必须返回响应数据对象，否则后续无法对响应数据进行处理
+      //   return p
+      // },
+      // // 请求完成时的回调函数(请求成功或失败都会被执行)
+      // complete (p) {
+      //   console.log('request complete: ', p)
+      // }
+    })
+  }
+
+  onLaunch() {
+    this.testAsync()
+  }
+
+  sleep (s) {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        resolve('promise resolved')
+      }, s * 1000)
+    })
+  }
+
+  async testAsync () {
+    const data = await this.sleep(3)
+    console.log(data)
+  }
+
+  getUserInfo(cb) {
+    const that = this
+    if (this.globalData.userInfo) {
+      return this.globalData.userInfo
+    }
+    wepy.getUserInfo({
+      success (res) {
+        that.globalData.userInfo = res.userInfo
+        cb && cb(res.userInfo)
+      }
+    })
+  }
+}
+</script>

@@ -1,0 +1,137 @@
+{
+	"description": "A WePY project",
+	"setting": {
+		"urlCheck": true,
+		"es6": false,
+		"postcss": false,
+		"minified": false,
+		"newFeature": true
+	},
+	"compileType": "miniprogram",
+	"appid": "wx2250f36e0ba64c80",
+	"projectname": "jtjz",
+	"miniprogramRoot": "./dist",
+	"condition": {
+		"search": {
+			"current": -1,
+			"list": []
+		},
+		"conversation": {
+			"current": -1,
+			"list": []
+		},
+		"plugin": {
+			"current": -1,
+			"list": []
+		},
+		"game": {
+			"list": []
+		},
+		"miniprogram": {
+			"current": 16,
+			"list": [
+				{
+					"id": -1,
+					"name": "me",
+					"pathName": "pages/me",
+					"query": ""
+				},
+				{
+					"id": -1,
+					"name": "address",
+					"pathName": "pages/address",
+					"query": ""
+				},
+				{
+					"id": -1,
+					"name": "login",
+					"pathName": "pages/login",
+					"query": ""
+				},
+				{
+					"id": -1,
+					"name": "newAddress",
+					"pathName": "pages/newAddress",
+					"query": ""
+				},
+				{
+					"id": -1,
+					"name": "inviteCode",
+					"pathName": "pages/inviteCode",
+					"query": ""
+				},
+				{
+					"id": -1,
+					"name": "discount",
+					"pathName": "pages/discount",
+					"query": ""
+				},
+				{
+					"id": -1,
+					"name": "getDiscount",
+					"pathName": "pages/getDiscount",
+					"query": ""
+				},
+				{
+					"id": -1,
+					"name": "cart",
+					"pathName": "pages/cart",
+					"query": ""
+				},
+				{
+					"id": -1,
+					"name": "index",
+					"pathName": "pages/index",
+					"query": ""
+				},
+				{
+					"id": -1,
+					"name": "goodDetails",
+					"pathName": "pages/goodDetails",
+					"query": ""
+				},
+				{
+					"id": -1,
+					"name": "pay",
+					"pathName": "pages/pay",
+					"query": ""
+				},
+				{
+					"id": -1,
+					"name": "invoice",
+					"pathName": "pages/invoice",
+					"query": ""
+				},
+				{
+					"id": -1,
+					"name": "myOrder",
+					"pathName": "pages/myOrder",
+					"query": ""
+				},
+				{
+					"id": -1,
+					"name": "successPay",
+					"pathName": "pages/successPay",
+					"query": ""
+				},
+				{
+					"id": -1,
+					"name": "myCollection",
+					"pathName": "pages/myCollection",
+					"query": ""
+				},
+				{
+					"id": -1,
+					"name": "test",
+					"pathName": "pages/test",
+					"query": ""
+				},
+				{
+					"id": -1,
+					"name": "myInvoice",
+					"pathName": "pages/myInvoice"
+				}
+			]
+		}
+	}
+}

@@ -1,0 +1,51 @@
+<style lang="less" scoped>
+.count{
+  display: flex;
+  overflow: hidden;
+  border: 1rpx solid #999;
+  position: absolute;
+  right: 30rpx;
+  bottom: 25rpx;
+  .numBtn{
+    width: 40rpx;
+    height: 40rpx;
+    line-height: 40rpx;
+    padding: 0;
+    margin: 0;
+    border-radius: 0;
+    text-align: center;
+    box-sizing: border-box;
+    color: #16aa8d;
+    &-left{
+      border-right: 1rpx solid #999;
+    }
+    &-right{
+      border-left: 1rpx solid #999;
+    }
+  }
+  input{
+    width: 100rpx;
+    height: 38rpx;
+    line-height: 38rpx;
+    text-align: center;
+    font-size: 22rpx;
+    min-height: 0;
+    color: #333;
+  }
+}
+</style>
+
+<template>
+  <view class="count">
+    <view bindtap='changeNum({{-1}},{{index}})' class="numBtn numBtn-left {{item.num <= 1 ? 'disabled' : ''}}">-</view>
+    <input type="number" value='{{item.num}}' class="numTotal" bindinput='countNumberInput({{index}})'/>
+    <view bindtap='changeNum({{1}},{{index}})' class="numBtn numBtn-right">+</view>
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+export default class Count extends wepy.component {
+
+}
+</script>

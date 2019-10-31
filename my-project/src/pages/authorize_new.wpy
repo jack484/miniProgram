@@ -1,0 +1,393 @@
+<template>
+  <view class="contianer">
+    <!-- loading动画 -->
+    <!-- 根据 showLoading ,如果是true就显示loading-->
+    <!-- https://www.cnblogs.com/lhb25/p/loading-spinners-animated-with-css3.html -->
+    <view class="spinner" wx:if="{{!showLoading}}">
+      <view class="spinner-container container1">
+        <view class="circle1"></view>
+        <view class="circle2"></view>
+        <view class="circle3"></view>
+        <view class="circle4"></view>
+      </view>
+      <view class="spinner-container container2">
+        <view class="circle1"></view>
+        <view class="circle2"></view>
+        <view class="circle3"></view>
+        <view class="circle4"></view>
+      </view>
+      <view class="spinner-container container3">
+        <view class="circle1"></view>
+        <view class="circle2"></view>
+        <view class="circle3"></view>
+        <view class="circle4"></view>
+      </view>
+    </view>
+    <!-- 原有的授权按钮,showLoading为false的时候才显示 -->
+    <view class="authorize-contianer {{showBtn? '' : 'test'}}" wx:if="{{showBtn}}">
+      <image class="authorize-icon" src="../icon/logo.png" />
+      <view class="auth-item">报考大学助手申请获取以下权限：</view>
+      <view class="auth-item">获取你的公开信息（头像、昵称等）</view>
+      <view class="btn-authorize">
+        <button open-type="getUserInfo" type="primary" lang="zh_CN" bindgetuserinfo="onGotUserInfo" class="getUserInfo">授权</button>
+      </view>
+    </view>
+
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import api from '../api/api'
+
+export default class Authorize extends wepy.page {
+  config = {
+    navigationBarTitleText: '授权登录'
+  }
+  data = {
+    showLoading: false,
+    showBtn: false,
+    kq: '',
+    KQname: '',
+    current: '',
+    type: '',
+    dev: '',
+    userInfoData: '',
+    opt: ''
+  }
+  async onLoad(opt) {
+    console.log(opt, '这是url的参数')
+    opt.authorize = false
+    this.opt = opt
+    wepy.setStorageSync('share', this.opt)
+    // console.log(this.opt)
+    let res = await wepy.getSetting()
+    console.log(res, '判断是否授权')
+    // 根据getSetting.authSetting判断是否授权过
+    if ((res.authSetting)['scope.userInfo']) {
+      /**
+       * 授权过的话延时2000ms后跳转到主页
+       * 关键就是这里,能进入这个if就是用户登录过的,闪烁问题就在这里
+       * 1.默认会出现加载动画,如果说让立即跳转的话,也会出现动画
+       * 2.设置一定的时长后触发跳转,
+       */
+      // 安卓机器未授权但是会判断为授权，此时没有userinfo 单独获取一次
+      var _res = await wepy.getUserInfo()
+      this.userInfoData = _res
+    //   console.log(_res)
+      if (_res.errMsg === 'getUserInfo:ok') {
+        wepy.setStorageSync('userInfo', _res.userInfo)
+        setTimeout(() => {
+          this.wxLogin()
+        }, 1500)
+      }
+    } else {
+      /**
+       * 进入这个else就是没有授权过,需要弹出授权框
+       * 1.为了保持和授权过用户一样,设置了显示2000ms的loading动画在来显示授权按钮
+       * 2.和上面一样,如果不设置时长,应该会闪一下loading动画才变成授权按钮
+       */
+      this.showLoading = true
+      this.showBtn = true
+      setTimeout(() => {
+        this.$apply()
+      }, 1500)
+    }
+  }
+  onShow() {
+    // 用来判断分享详情页返回时候，进入授权页面需要跳转到index
+    var share = wepy.getStorageSync('share')
+    if (share.authorize) {
+      wepy.switchTab({
+        url: '/pages/index'
+      })
+    }
+    // if (this.opt.fromPage) {
+    //   wepy.switchTab({
+    //     url: '/pages/index'
+    //   })
+    // }
+  }
+  async onGotUserInfo(e) {
+    // console.log(e)
+    this.userInfoData = e.detail
+    if (e.detail.errMsg === 'getUserInfo:ok') {
+      console.log('ok')
+      wepy.setStorageSync('userInfo', e.detail.userInfo)
+      /**
+       * 这里原来是在wepy.showLoading的成功回调里面执行跳转,会闪一下原生的loading框,体验不好
+       * 所以注释掉了原有的方式,改成直接跳转了
+       */
+      this.wxLogin()
+    } else if (e.detail.errMsg === 'getUserInfo:fail auth deny') {
+      wepy.showToast({
+        title: '亲，授权之后才能享受报考大学助手带来的便捷噢',
+        icon: 'none',
+        duration: 2000,
+        mask: true
+      })
+    }
+  }
+  // 微信登录 -- 登录接口
+  wxLogin() {
+    wepy.login().then(res => {
+      this.showLoading = true
+      this.showBtn = false
+      this.$apply()
+      console.log(res, '微信登录')
+      var code = res.code
+      // 根据code 获取openid
+      wepy.showLoading({
+        title: '登陆中...',
+        mask: true
+      }).then(() => {
+        if (code) {
+          api.getWxOpenId({
+            data: {code: code},
+            method: 'POST'
+          }).then(res => {
+            console.log(res, 'openid')
+            wepy.showLoading({
+              title: '正在登录',
+              mask: true
+            }).then(() => {
+              if (res && res.header && res.header['Set-Cookie']) {
+                // 设置sessionId
+                wepy.setStorageSync('cookieKey', res.header['Set-Cookie'])
+                this.sessionId = res.header['Set-Cookie']
+              }
+              this.$apply()
+              // 获取机型--ios或者az
+              wepy.getSystemInfo().then(res => {
+                if (res.system.indexOf('iOS') !== -1) {
+                  this.dev = '3'
+                  wepy.setStorageSync('dev', this.dev)
+                } else {
+                  this.dev = '2'
+                  wepy.setStorageSync('dev', this.dev)
+                }
+                var _userInfo = wepy.getStorageSync('userInfo')
+                this.$apply()
+                wepy.hideLoading()
+                let options = {
+                  dev: this.dev,
+                  encryptedData: this.userInfoData.encryptedData,
+                  iv: this.userInfoData.iv,
+                  nickname: _userInfo.nickName,
+                  gender: _userInfo.gender,
+                  head: _userInfo.avatarUrl,
+                  prov: _userInfo.province,
+                  city: _userInfo.country
+                }
+                // console.log(options)
+                this.userLogin(options)
+              })
+            })
+          })
+        }
+      })
+    })
+  }
+  // 用户APP登录
+  userLogin(options) {
+    api.doWxLogin({
+      method: 'POST',
+      data: options,
+      header: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    }).then(res => {
+      console.log(res, '接口登录')
+      if (res.code === '200') {
+        // 储存用户uid
+        wepy.setStorageSync('uid', res.extraData.uid)
+        wepy.setStorageSync('bindPhone', res.extraData.phone)
+        // 获取用户分数/考区
+        api.getUserkqfs().then(res => {
+          console.log(res, '分数/考区')
+          wepy.setStorageSync('userKqFs', res.extraData)
+          // 判断跳转
+          this.goToUrl()
+        })
+      }
+    })
+  }
+  // 判断跳转
+  goToUrl() {
+    console.log('-----------判断跳转-----------')
+    if (!this.opt.fromPage) {
+      console.log('非分享页', this.opt)
+      wepy.setStorageSync('share', '')
+      wepy.switchTab({
+        url: '/pages/index'
+      })
+    } else {
+      console.log('分享页', this.opt)
+      this.opt.authorize = true
+      wepy.setStorageSync('share', this.opt)
+      var _path = this.opt.fromPage
+      if (_path === 'index' || _path === 'interestIndex' || _path === 'news' || _path === 'subject') {
+        wepy.switchTab({
+          url: `/pages/${_path}`
+        })
+      } else {
+        wepy.navigateTo({
+          url: `/pages/${_path}`
+        })
+      }
+    }
+  }
+}
+
+</script>
+<style lang="less">
+// 最外层容器,根元素
+.contianer{
+  // loading容器
+  .spinner {
+    // 修改这里来控制loading位置
+    margin: 350rpx auto;
+    // loading整体大小
+    width: 100rpx;
+    height: 100rpx;
+    position: relative;
+    z-index: 3;
+  }
+
+  .container1 > view, .container2 > view, .container3 > view {
+    // loading每个小球大小
+    width: 20rpx;
+    height: 20rpx;
+    // 颜色
+    background-color: #5ba8ff;
+
+    border-radius: 100%;
+    position: absolute;
+    -webkit-animation: bouncedelay 1.2s infinite ease-in-out;
+    animation: bouncedelay 1.2s infinite ease-in-out;
+    -webkit-animation-fill-mode: both;
+    animation-fill-mode: both;
+  }
+
+  .spinner .spinner-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+  }
+
+  .container2 {
+    -webkit-transform: rotateZ(45deg);
+    transform: rotateZ(45deg);
+  }
+
+  .container3 {
+    -webkit-transform: rotateZ(90deg);
+    transform: rotateZ(90deg);
+  }
+
+  .circle1 { top: 0; left: 0; }
+  .circle2 { top: 0; right: 0; }
+  .circle3 { right: 0; bottom: 0; }
+  .circle4 { left: 0; bottom: 0; }
+
+  .container2 .circle1 {
+    -webkit-animation-delay: -1.1s;
+    animation-delay: -1.1s;
+  }
+
+  .container3 .circle1 {
+    -webkit-animation-delay: -1.0s;
+    animation-delay: -1.0s;
+  }
+
+  .container1 .circle2 {
+    -webkit-animation-delay: -0.9s;
+    animation-delay: -0.9s;
+  }
+
+  .container2 .circle2 {
+    -webkit-animation-delay: -0.8s;
+    animation-delay: -0.8s;
+  }
+
+  .container3 .circle2 {
+    -webkit-animation-delay: -0.7s;
+    animation-delay: -0.7s;
+  }
+
+  .container1 .circle3 {
+    -webkit-animation-delay: -0.6s;
+    animation-delay: -0.6s;
+  }
+
+  .container2 .circle3 {
+    -webkit-animation-delay: -0.5s;
+    animation-delay: -0.5s;
+  }
+
+  .container3 .circle3 {
+    -webkit-animation-delay: -0.4s;
+    animation-delay: -0.4s;
+  }
+
+  .container1 .circle4 {
+    -webkit-animation-delay: -0.3s;
+    animation-delay: -0.3s;
+  }
+
+  .container2 .circle4 {
+    -webkit-animation-delay: -0.2s;
+    animation-delay: -0.2s;
+  }
+
+  .container3 .circle4 {
+    -webkit-animation-delay: -0.1s;
+    animation-delay: -0.1s;
+  }
+}
+// 动画函数
+@-webkit-keyframes bouncedelay {
+  0%, 80%, 100% { -webkit-transform: scale(0.0) }
+  40% { -webkit-transform: scale(1.0) }
+}
+// 动画函数
+@keyframes bouncedelay {
+  0%, 80%, 100% {
+    transform: scale(0.0);
+    -webkit-transform: scale(0.0);
+  } 40% {
+    transform: scale(1.0);
+    -webkit-transform: scale(1.0);
+  }
+}
+.authorize-contianer {
+  height: 100%;
+  background: #fff;
+  text-align: center;
+  padding-top: 100rpx;
+  .authorize-icon {
+    width: 100rpx;
+    height: 100rpx;
+    display: block;
+    margin: 0 auto;
+    padding-bottom: 28rpx;
+  }
+  .auth-item {
+    padding: 5rpx 0;
+    font-size: 28rpx;
+  }
+  .btn-authorize {
+    // margin: 100rpx 50rpx;
+    button{
+      margin-top: 60rpx;
+      background-color: #5ba8ff;
+      height: 75rpx;
+      line-height: 75rpx;
+      font-size: 26rpx;
+      width: 560rpx;
+    }
+  }
+}
+.test{
+  opacity: 0;
+}
+</style>

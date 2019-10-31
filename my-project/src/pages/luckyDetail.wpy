@@ -1,0 +1,178 @@
+<template>
+  <view class="lucky">
+    <view class="lucky-top">
+      <image wx:if="{{result}}" src="{{imageUrl}}{{luckyData[result]}}"></image>
+      <view>关注“报考大学”公众号，凭兑换码联系工作人员兑奖</view>
+    </view>
+    <view class="lucky-main">
+      <view class="main-item itemone">
+        <text class="main-left">兑奖码</text>
+        <view class="main-right">
+          <text>{{codeKey}}</text>
+          <text class="fz-btn" bindtap="copyTBL" data-text="{{codeKey}}">复制</text>
+        </view>
+      </view>
+      <view class="main-item">
+        <text class="main-left">有效日期</text>
+        <text class="main-right">2018-09-02至2018-09-11</text>
+      </view>
+    </view>
+    <view class="lucky-bottom">
+      <view class="bottom-title">保存二维码进相册，再识别二维码即可关注和下载</view>
+      <view class="bottom-main">
+        <view class="bottom-item">
+          <image wx:if="{{imageUrl}}" bindtap="previewImage" src="{{imageUrl}}/img/yd/xingge/gzher.png" data-src="{{imageUrl}}/img/yd/xingge/gzher.png"></image>
+          <text>报考大学公众号二维码</text>
+        </view>
+        <view class="bottom-item">
+          <image wx:if="{{imageUrl}}" bindtap="previewImage" src="{{imageUrl}}/img/yd/xingge/apper.png" data-src="{{imageUrl}}/img/yd/xingge/apper.png"></image>
+          <text>报考大学APP下载二维码</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import api from '../api/api'
+
+export default class luckyDetail extends wepy.page {
+  config = {
+    navigationBarTitleText: '实物奖品兑奖码',
+    navigationBarBackgroundColor: '#fff',
+    navigationBarTextStyle: 'black'
+  }
+  data = {
+    imageUrl: api.imageUrl,
+    luckyData: {
+      '2': '/img/yd/xingge/book.png',
+      '3': '/img/yd/xingge/bz.png',
+      '4': '/img/yd/xingge/upan.png'
+    },
+    result: '',
+    codeKey: ''
+  }
+  onLoad(options) {
+    console.log(options)
+    this.result = options.result
+    this.getluckyCode()
+  }
+  methods = {
+    // 复制到剪切板
+    copyTBL(e) {
+      wepy.setClipboardData({
+        data: e.currentTarget.dataset.text
+      }).then(res => {
+        if (res.errMsg === 'setClipboardData:ok') {
+        //   wepy.showToast({
+        //     title: '复制成功啦',
+        //     icon: 'none',
+        //     duration: 2000
+        //   })
+        }
+      })
+    }
+  }
+  getluckyCode() {
+    var self = this
+    api.getGiftCode().then(res => {
+      if (res.code === '200') {
+        console.log(res)
+        self.codeKey = res.extraData.code
+        self.$apply()
+      }
+    })
+  }
+  previewImage(e) {
+    const { src } = e.target.dataset
+    // 图片预览
+    wepy.previewImage({
+      urls: [src]
+    })
+  }
+}
+</script>
+<style lang="less" scoped>
+  .lucky{
+    width: 750rpx;
+    height:100vh;
+    background-color: #f2f4f7;
+    text-align: center;
+    .lucky-top{
+      background-color: #fff;
+      box-sizing: border-box;
+      height: 29vh;
+      margin-bottom: 2vh;
+      image{
+        width: 280rpx;
+        height: 280rpx;
+      }
+      view{
+        font-size: 24rpx;
+        color: #999;
+      }
+    }
+    .lucky-main{
+      background-color: #fff;
+      margin-bottom: 2vh;
+      height: 16vh;
+      .main-item{
+        height: 8vh;
+        font-size: 28rpx;
+        line-height: 8vh;
+        padding: 0 30rpx;
+        overflow: hidden;
+        text-align: left;
+        &:first-child{
+          border-bottom: 1px solid #eee;
+        }
+        .main-left{
+          color: #999;
+        }
+        .main-right{
+          color: #333;
+          float: right;
+          .fz-btn{
+            margin-left: 20rpx;
+            background-color: #5ba8ff;
+            border-radius: 5rpx;
+            padding: 8rpx 20rpx;
+            color:#fff;
+            font-size: 26rpx;
+          }
+        }
+      }
+    }
+    .lucky-bottom{
+      height: 51vh;
+      background-color: #fff;
+      .bottom-title{
+        font-size: 28rpx;
+        color: #999;
+        height: 7vh;
+        line-height: 7vh;
+        border-bottom: 1px solid #eee;
+        box-sizing: border-box;
+      }
+      .bottom-main{
+        display: flex;
+        padding: 50rpx 50rpx 0;
+        .bottom-item{
+          flex: 1;
+          image{
+            width:258rpx;
+            height:258rpx;
+          }
+          text{
+            display: block;
+            font-size: 28rpx;
+            font-weight: 700;
+            color: #5ba8ff;
+            width:215rpx;
+            margin:0 auto;
+          }
+        }
+      }
+    }
+  }
+</style>

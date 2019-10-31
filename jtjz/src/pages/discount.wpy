@@ -1,0 +1,228 @@
+<style lang="less">
+.discount{
+  overflow: hidden;
+  background-color: #f5f5f5;
+  height: 100vh;
+  &-list{
+    margin-bottom: 20rpx;
+    .discountItem{
+      height: 162rpx;
+      background-color: #fff;
+      border-top: 1rpx solid #dcdcdc;
+      padding: 0 25rpx;
+      display: flex;
+      position: relative;
+      &-left{
+        .discountImg{
+          width: 170rpx;
+          height: 114rpx;
+          position: absolute;
+          top: 0;
+          left: 0;
+        }
+        &-img{
+          position: relative;
+          width: 170rpx;
+          height: 114rpx;
+          // background-color: #c5c5c5;
+          margin: 25rpx 30rpx 0 8rpx;
+          &-angle{
+            width: 70rpx;
+            height: 70rpx;
+            position: absolute;
+            top: 0rpx;
+            left: 0rpx;
+          }
+          &-word{
+            position: absolute;
+            top: 10rpx;
+            left: 3rpx;
+            color: #fff;
+            font-size: 20rpx;
+            transform: rotate(-45deg);
+          }
+        }
+      }
+      &-right{
+        &-title{
+          font-size: 30rpx;
+          color: #333;
+          margin-top: 35rpx;
+          line-height: 50rpx;
+        }
+        &-time{
+          color: #999;
+          font-size: 22rpx;
+          line-height: 42rpx;
+        }
+      }
+      &-choose{
+        position: absolute;
+        right: 20rpx;
+        top: 0;
+        height: 162rpx;
+        width: 100rpx;
+        image{
+          width: 40rpx;
+          height: 40rpx;
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%,-50%);
+        }
+      }
+    }
+  }
+  &-noUse{
+    height: 100rpx;
+    line-height: 100rpx;
+    padding: 0 20rpx;
+    font-size: 28rpx;
+    background-color: #fff;
+    position: relative;
+    image{
+      width: 40rpx;
+      height: 40rpx;
+      position: absolute;
+      right: 50rpx;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+  }
+  .emptyTip{
+    color: #999;
+    font-size: 28rpx;
+    width: 750rpx;
+    text-align: center;
+    height: 100rpx;
+    line-height: 100rpx;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    left: 0;
+    image{
+      width: 260rpx;
+      height: 180rpx;
+      position: absolute;
+      top: -180rpx;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+  }
+  .test{
+    opacity: 0;
+  }
+}
+</style>
+<template>
+  <view class="discount">
+    <scroll-view scroll-y="true" style="width: 100%;height:100%;position:absolute; top:0rpx; left:0rpx;" wx:if="{{discountArr.length != 0}}">
+      <view class="discount-list">
+        <block wx:for='{{discountArr}}' wx:key='index'>
+          <view class="discountItem"  bindtap='chooseDiscount({{index}})' wx:if="{{item.num != 0}}">
+            <view class="discountItem-left">
+              <view class="discountItem-left-img">
+                <!-- 折扣券的图片 -->
+                <!-- <image src="{{imgBaseUrl+item.img}}" class="discountImg"/> -->
+                <image src='../images/yhq.png' class="discountImg"/>
+                <image src='../images/discount_bg.png' class="discountItem-left-img-angle"/>
+                <view class="discountItem-left-img-word">{{item.discount}}折</view>
+              </view>
+            </view>
+            <view class="discountItem-right">
+              <view class="discountItem-right-title">商品{{item.title}} x {{item.num}}</view>
+              <view class="discountItem-right-time">使用期限：{{item.deadline}}</view>
+            </view>
+            <view class="discountItem-choose" wx:if="{{choosePageCome}}">
+              <image src='../images/choose.png' wx:if="{{item.status == '0'}}"/>
+              <image src='../images/choosed.png' wx:if="{{item.status == '1'}}"/>
+            </view>
+          </view>
+        </block>
+      </view>
+      <view class="discount-noUse" bindtap='clearDisCount' wx:if="{{choosePageCome}}">
+        不使用折扣券
+        <image src='../images/choose.png' wx:if='{{!noUse}}'/>
+        <image src='../images/choosed.png' wx:if='{{noUse}}'/>
+      </view>
+    </scroll-view>
+    <view class="emptyTip {{discountArr.length == 0 ? '' : 'test'}}" wx:if="{{discountArr.length == 0}}">
+      <image src='../images/no_discount.png'/>
+      暂无可使用的折扣券哦~
+    </view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import api from '../api/api'
+  import com from '../utils/common'
+
+  export default class Discount extends wepy.page {
+    onLoad(opt) {
+      this.session3rd = wepy.getStorageSync('session3rd')
+      this.type = opt.type
+      // 判断是否从选择折扣券页面进入
+      if (opt.type === 'choose') {
+        this.choosePageCome = true
+      }
+    }
+    onShow() {
+    //   this.imgBaseUrl = this.$parent.globalData.imgBaseUrl
+      // 获取折扣券列表
+      api.getMyCode({
+        data: {
+          session3rd: this.session3rd
+        },
+        method: 'POST'
+      }).then(res => {
+        console.log(res, '折扣券列表')
+        // 过滤时间戳
+        for (let i = 0; i < res.extraData.info.length; i++) {
+          res.extraData.info[i].deadline = com.filterTime(res.extraData.info[i].deadline)
+        }
+        this.discountArr = res.extraData.info
+        this.$apply()
+      })
+    }
+    config = {
+      navigationBarTitleText: '折扣券'
+    }
+    data = {
+      // imgBaseUrl: 'http://192.168.8.90',
+      imgBaseUrl: '',
+      session3rd: '',
+      type: '',
+      discountArr: [],
+      choosePageCome: false,
+      noUse: false
+    }
+    methods = {
+      // 选择折扣券
+      chooseDiscount(index) {
+        console.log(index)
+        for (let i = 0; i < this.discountArr.length; i++) {
+          this.discountArr[i].status = '0'
+          if (index === i) {
+            this.discountArr[index].status = '1'
+          //   this.discountArr[index].isChoose = !this.discountArr[index].isChoose
+            wepy.setStorageSync('discountText', this.discountArr[index].title)
+            wepy.setStorageSync('discount', this.discountArr[index].discount)
+            wepy.setStorageSync('coupons_id', this.discountArr[index])
+            this.noUse = false
+          }
+        }
+      },
+      // 不使用折扣券
+      clearDisCount() {
+        for (let i = 0; i < this.discountArr.length; i++) {
+          this.discountArr[i].status = '0'
+        }
+        this.noUse = !this.noUse
+        wepy.setStorageSync('discountText', '不使用优惠券')
+        wepy.setStorageSync('discount', 10)
+        wepy.setStorageSync('coupons_id', '')
+      }
+    }
+  }
+</script>

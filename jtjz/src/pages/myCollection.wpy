@@ -1,0 +1,442 @@
+<style lang="less">
+.collection{
+  background-color: #f5f5f5;
+  // height: 100vh;
+  overflow: hidden;
+  // 顶部操作
+  &-topHandle{
+    background-color: #fff;
+    height: 80rpx;
+    line-height: 80rpx;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 30rpx;
+    font-size: 26rpx;
+    margin-bottom: 20rpx;
+    color: #333;
+    border-top: 1rpx solid #dcdcdc;
+    &-right{
+      color: #1c80b2;
+    }
+  }
+  // 商品列表
+  &-goodsList{
+    &-item{
+      height: 230rpx;
+      background-color: #fff;
+      display: flex;
+      padding: 25rpx 30rpx;
+      box-sizing: border-box;
+      margin-bottom: 20rpx;
+      position: relative;
+      &-img{
+        position: relative;
+        &-tu{
+          width: 180rpx;
+          height: 180rpx;
+          background-color: #f5f5f5;
+          // margin-left: 80rpx;
+          margin-right: 25rpx;
+        }
+        .activeEdit{
+          margin-left: 80rpx;
+        }
+        &-choose{
+          width: 60rpx;
+          height: 60rpx;
+          line-height: 60rpx;
+          text-align: center;
+          position: absolute;
+          top:50%;
+          transform: translateY(-50%);
+          left: 0rpx;
+          image{
+            width: 40rpx;
+            height: 40rpx;
+          }
+        }
+      }
+      &-desc{
+        font-size: 28rpx;
+        &-about{
+          margin-bottom: 30rpx;
+          line-height: 38rpx;
+        }
+        &-goodAttr{
+          display: flex;
+          &-price{
+            height: 26rpx;
+            line-height: 26rpx;
+            margin-right: 150rpx;
+            color: #ff4e4e;
+          }
+          &-num{
+            display: flex;
+            overflow: hidden;
+            border: 1rpx solid #999;
+            position: absolute;
+            right: 30rpx;
+            bottom: 25rpx;
+            .numBtn{
+              width: 40rpx;
+              height: 40rpx;
+              line-height: 40rpx;
+              padding: 0;
+              margin: 0;
+              border-radius: 0;
+              text-align: center;
+              box-sizing: border-box;
+              color: #16aa8d;
+              &-left{
+                border-right: 1rpx solid #999;
+              }
+              &-right{
+                border-left: 1rpx solid #999;
+              }
+            }
+            input{
+              width: 100rpx;
+              height: 38rpx;
+              line-height: 38rpx;
+              text-align: center;
+              font-size: 22rpx;
+              min-height: 0;
+              color: #333;
+            }
+          }
+        }
+      }
+    }
+  }
+  // 编辑
+  &-edit{
+    border-top: 1rpx solid #dcdcdc;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 750rpx;
+    height: 100rpx;
+    line-height: 100rpx;
+    display: flex;
+    justify-content: space-between;
+    font-size: 28rpx;
+    &-chooseAll{
+      background-color: #fff;
+      width: 360rpx;
+      padding-left: 25rpx;
+      position: relative;
+      image{
+        width: 40rpx;
+        height: 40rpx;
+      }
+      .all{
+        position: absolute;
+        bottom: -3rpx;
+        left: 25rpx;
+        color: #999;
+        font-size: 20rpx;
+        height: 50rpx;
+        line-height: 50rpx;
+      }
+    }
+    &-handle{
+      background-color: #fff;
+      display: flex;
+      text-align: center;
+      padding-top: 20rpx;
+      font-size: 26rpx;
+      view{
+        width: 160rpx;
+        height: 70rpx;
+        border-radius: 10rpx;
+        line-height: 70rpx;
+        text-align: center;
+        box-sizing: border-box;
+        margin-right: 25rpx;
+      }
+      &-delete{
+        background-color: #ff4e4e;
+        color: #fff;
+      }
+    }
+  }
+  .disabled{
+    color: #ccc!important;
+  }
+  .cant{
+    background-color: #ccc!important;
+    color: #fff;
+  }
+  .delWord{
+    color: #333;
+  }
+  .emptyTip{
+    width: 750rpx;
+    height: 100rpx;
+    line-height: 100rpx;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    color: #999;
+    font-size: 28rpx;
+    text-align: center;
+  }
+  .emptyAddress{
+    height: 280rpx;
+    text-align: center;
+    line-height: 280rpx;
+    width: 750rpx;
+    font-size: 28rpx;
+    color: #999;
+  }
+}
+</style>
+<template>
+  <view class="collection">
+    <load wx:if='{{!loading}}'></load>
+    <view wx:if='{{loading}}'>
+      <view class="collection-topHandle">
+        <view class="collection-topHandle-left">
+          共{{goodsList.length}}件商品
+        </view>
+        <view class="collection-topHandle-right" bindtap='showEdit'>
+          <text wx:if="{{!isEdit}}">编辑商品</text>
+          <text wx:if="{{isEdit}}">完成</text>
+        </view>
+      </view>
+
+      <scroll-view scroll-y="true" style="width: 100%;height:82%;position:absolute; top:100rpx; left:0rpx;">
+      <!-- 收藏商品列表 -->
+        <view class="collection-goodsList">
+          <block wx:for='{{goodsList}}' wx:key='index'>
+            <view class="collection-goodsList-item">
+              <view class="collection-goodsList-item-img">
+                <!-- <view class="collection-goodsList-item-img-tu {{isEdit? 'activeEdit' : ''}}"></view> -->
+                <image src='{{imgBaseUrl + item.goods_image}}' class="collection-goodsList-item-img-tu {{isEdit? 'activeEdit' : ''}}" />
+                <view class="collection-goodsList-item-img-choose" bindtap='chooseGoods({{index}})' wx:if="{{isEdit}}">
+                  <image src='../images/choose.png' wx:if='{{!item.isChoose}}'/>
+                  <image src='../images/choosed.png' wx:if='{{item.isChoose}}' />
+                </view>
+              </view>
+              <view class="collection-goodsList-item-desc">
+                <view class="collection-goodsList-item-desc-about">
+                  <view class="collection-goodsList-item-desc-about-name">
+                    {{item.goods_name}}
+                  </view>
+                  <view class="collection-goodsList-item-desc-about-size">
+                    {{item.type}}
+                  </view>
+                  <view class="collection-goodsList-item-desc-about-color">
+                    颜色：{{item.color}}
+                  </view>
+                </view>
+                <view class="collection-goodsList-item-desc-goodAttr">
+                  <view class="collection-goodsList-item-desc-goodAttr-price">{{item.goods_price}}元</view>
+                </view>
+              </view>
+            </view>
+          </block>
+          <view class="emptyTip" wx:if="{{goodsList.length == 0}}">您还没有收藏的商品哦~</view>
+        </view>
+      </scroll-view>
+
+      <!-- 编辑状态 -->
+      <view class="collection-edit" wx:if="{{isEdit}}">
+        <view class="collection-edit-chooseAll" bindtap='selectAllHandle({{selectStatusCount == goodsList.length}})' wx:if="{{goodsList.length != 0}}">
+          <image src='../images/choose.png' wx:if='{{selectStatusCount != goodsList.length}}'/>
+          <image src='../images/choosed.png' wx:if='{{selectStatusCount == goodsList.length}}' />
+          <text class="all">全选</text>
+        </view>
+        <view class="collection-edit-handle" wx:if="{{goodsList.length != 0}}">
+          <view class="collection-edit-handle-collect" bindtap='moveToCollect()'></view>
+          <view class="collection-edit-handle-delete" bindtap='showDelGood()'>删除</view>
+        </view>
+      </view>
+    </view>
+    <i-modal visible="{{ isShowDel }}" bindclick='delGood' actions="{{action}}">
+      <view class="delWord">确认将选中的商品删除吗</view>
+    </i-modal>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  import load from '../components/load'
+
+  import api from '../api/api'
+
+  // import com from '../utils/common'
+
+  export default class MyCollection extends wepy.page {
+    onShow() {
+      this.imgBaseUrl = this.$parent.globalData.imgBaseUrl
+      this.session3rd = wepy.getStorageSync('session3rd')
+      setTimeout(() => {
+        this.loading = true
+        this.$apply()
+      }, 500)
+      // 获取我的收藏
+      this.getMyCollect()
+      this.currentIndex = 0
+      this.isEdit = false
+    }
+    onHide() {
+      setTimeout(() => {
+        this.loading = false
+        this.$apply()
+      }, 500)
+    }
+    onLoad() {
+      this.session3rd = wepy.getStorageSync('session3rd')
+      wepy.login().then(res => {
+        console.log(res, 'wx登录')
+        this.code = res.code
+      })
+    }
+    config = {
+      navigationBarTitleText: '我的收藏',
+      'usingComponents': {
+        'i-modal': '../components/iView-components/modal/index',
+        'i-icon': '../components/iView-components/icon/index'
+      }
+    }
+    components = {
+      load
+    }
+    data = {
+      // imgBaseUrl: 'http://192.168.8.90',
+      imgBaseUrl: '',
+      session3rd: '',
+      loading: false,
+      goodsList: [],
+      // 被选中的商品数量
+      selectStatusCount: 0,
+      isEdit: false,
+      isShowDel: false,
+      action: [
+        {color: '#999', name: '取消'},
+        {color: '#ff4e4e', name: '确定'}
+      ],
+      code: '',
+      currentIndex: 0,
+      chooseAll: false,
+      // 被选中的商品
+      selectArr: []
+    }
+    methods = {
+      // 选择商品
+      chooseGoods(index) {
+        // let temp = this.goodsList[index].isChoose
+        // console.log(temp, 'xzsp').
+        let arr = []
+        this.selectArr = []
+        this.goodsList[index].isChoose = !this.goodsList[index].isChoose
+        this.goodsList.forEach(item => {
+          if (item.isChoose) {
+            arr.push(+item.id)
+            this.selectArr = [...new Set(arr)]
+          }
+        })
+      },
+      // 全选按钮
+      selectAllHandle(selectAllStatus) {
+        console.log(selectAllStatus)
+        let arr = []
+        this.selectArr = []
+        this.goodsList.forEach(item => {
+          item.isChoose = !selectAllStatus
+          if (item.isChoose) {
+            arr.push(+item.id)
+            this.selectArr = [...new Set(arr)]
+          }
+        })
+        wepy.setStorageSync('addCartArr', this.goodsList)
+      },
+      // 进入编辑状态
+      showEdit() {
+        this.isEdit = !this.isEdit
+      },
+      // 显示删除商品对话框
+      showDelGood() {
+        if (this.selectStatusCount) {
+          this.isShowDel = true
+        } else {
+          wepy.showToast({
+            title: '请选择商品!',
+            icon: 'none',
+            duration: 2000,
+            mask: false
+          })
+        }
+      },
+      // 删除商品操作
+      delGood({ detail }) {
+        this.isShowDel = false
+        if (detail.index === 1) {
+          // 进行删除商品操作
+          let idArr = {}
+          this.selectArr.forEach((item, index) => {
+            let key = 'idArr' + item
+            idArr[key] = item
+          })
+          console.log(idArr, 'idArr')
+          api.delCollect({
+            data: {
+              session3rd: this.session3rd,
+              idArr: JSON.stringify(idArr)
+            },
+            method: 'POST'
+          }).then(res => {
+            console.log(res, '删除收藏')
+            if (res.code === '200') {
+              this.getMyCollect()
+              wepy.showToast({
+                title: '删除成功',
+                icon: 'success',
+                duration: 2000,
+                mask: false
+              })
+            }
+          })
+        }
+        wepy.setStorageSync('addCartArr', this.goodsList)
+      }
+    }
+    // 获取我的收藏
+    getMyCollect() {
+      api.getCollect({
+        data: {
+          session3rd: this.session3rd
+        },
+        method: 'POST'
+      }).then(res => {
+        console.log(res, '收藏列表')
+        this.goodsList = res.extraData.info
+        for (let i = 0; i < this.goodsList.length; i++) {
+          this.goodsList[i].isChoose = false
+        }
+        this.$apply()
+      })
+    }
+    computed = {
+      // 计算是否全选
+      goodsList() {
+        this.selectStatusCount = 0
+        if (!this.goodsList) {
+          this.goodsList = []
+        }
+        this.goodsList.forEach(item => {
+          if (item.isChoose === true) {
+            this.selectStatusCount++
+            if (this.selectStatusCount === this.goodsList.length && this.selectStatusCount !== 0) {
+              this.chooseAll = true
+            }
+          }
+        })
+        return this.goodsList
+      }
+    }
+  }
+</script>

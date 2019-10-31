@@ -1,0 +1,555 @@
+<style lang="less">
+.myorder{
+  background-color: #f6f6f6;
+  height: 100vh;
+  &-head{
+    height: 100rpx;
+    background-color: #fff;
+    // width: 750rpx;
+    padding: 0 60rpx;
+    line-height: 100rpx;
+    display: flex;
+    box-sizing: border-box;
+    // margin-bottom: 15rpx;
+    &-item{
+      flex: 1;
+      color: #333;
+      font-size: 28rpx;
+      text-align: center;
+      // margin: 0 50rpx;
+    }
+    .active{
+      border-bottom: 5rpx solid #1f7faf;
+      color: #1f7faf;
+      font-size: 32rpx;
+      font-weight: 600;
+    }
+  }
+  &-body{
+    &-item{
+      // background-color: #fff;
+      .goods{
+        // background-color: #fff;
+        // padding: 0 25rpx;
+        &-item{
+          height: 230rpx;
+          display: flex;
+          padding: 25rpx 0;
+          // margin: 0 25rpx;
+          // border-bottom: 1rpx solid #dcdcdc;
+          box-sizing: border-box;
+          position: relative;
+          font-size: 26rpx;
+          background-color: #fff;
+          &-img{
+            position: relative;
+            // background-color: #fff;
+            margin-left: 25rpx;
+            &-tu{
+              width: 180rpx;
+              height: 180rpx;
+              background-color: #f5f5f5;
+              margin-right: 25rpx;
+            }
+          }
+          &-desc{
+            width: 500rpx;
+            &-about{
+              margin-bottom: 75rpx;
+              line-height: 38rpx;
+              &-color{
+                color: #ccc;
+              }
+            }
+            &-goodAttr{
+              display: flex;
+              justify-content: space-between;
+              &-price{
+                height: 26rpx;
+                line-height: 26rpx;
+                // margin-right: 150rpx;
+                color: #ff4e4e;
+              }
+              &-num{
+              }
+            }
+          }
+        }
+        &-handle{
+          padding: 0 25rpx;
+          font-size: 28rpx;
+          margin-bottom: 15rpx;
+          background-color: #fff;
+          &-wuliu,
+          .pay_status{
+            // height: 90rpx;
+            // line-height: 90rpx;
+            border-bottom: 1rpx solid #dcdcdc;
+            border-top: 1rpx solid #dcdcdc;
+            position: relative;
+            color: #ccc;
+            image{
+              width: 45rpx;
+              height: 45rpx;
+              position: absolute;
+              top: 50%;
+              left: 0;
+              transform: translateY(-50%);
+            }
+            &-word{
+              margin-left: 60rpx;
+            }
+            &-active{
+              margin-left: 60rpx;
+              color: #19a78f;
+            }
+          }
+          &-wuliu{
+            border: 0;
+            height: 90rpx;
+            line-height: 90rpx;
+            &.dd{
+              border-bottom: 1rpx solid #dcdcdc;
+            }
+          }
+          &-btn{
+            display: flex;
+            justify-content: space-between;
+            text-align: center;
+            height: 90rpx;
+            padding: 25rpx 0;
+            box-sizing: border-box;
+            &-del,
+            &-sure{
+              font-size: 28rpx;
+              width: 350rpx;
+              box-sizing: border-box;
+              height: 40rpx;
+              line-height: 40rpx;
+              text-align: center;
+              color: #999;
+              .disableBtn{
+                color: #ddd;
+              }
+              .sureBtn{
+                color: #1f7faf
+              }
+            }
+            > view:first-child{
+              border-right: 1rpx solid #dcdcdc;
+            }
+            // &-sure{
+            //   border-left: 1rpx solid #dcdcdc;
+            // }
+            .disabledBtn{
+              color: #ccc;
+            }
+          }
+        }
+        &-noData{
+          font-size:28rpx;
+          margin: 300rpx  auto;
+          text-align: center;
+          color:#999;
+        }
+      }
+    }
+  }
+}
+</style>
+<template>
+  <view class="myorder">
+    <view class="myorder-head">
+      <block wx:for='{{tabs}}' wx:key='index'>
+        <view class="myorder-head-item {{index == activeTab ? 'active' : ''}}" bindtap='changeTab({{index}})'>
+          {{item}}
+        </view>
+      </block>
+    </view>
+    <view class="myorder-body">
+      <view class="myorder-body-item">
+        <view class="goods">
+          <scroll-view scroll-y="true" style="white-space: nowrap;width: 100%;height:90.5%;position:absolute;top:115rpx;left:0rpx;"  enable-back-to-top>
+            <block wx:for='{{goodsList}}' wx:key='index'>
+              <view class="goods-item" wx:for="{{item.list}}" wx:key="cindex" wx:for-item="child" wx:for-key="cindex">
+                <view class="goods-item-img">
+                  <image class="goods-item-img-tu" src='{{imgBaseUrl + child.goods_image}}' />
+                </view>
+                <view class="goods-item-desc">
+                  <view class="goods-item-desc-about">
+                    <view class="goods-item-desc-about-name">
+                      {{child.goods_name}} {{child.type}}
+                    </view>
+                    <!-- <view class="goods-item-desc-about-size">
+                      {{item.size}}
+                    </view> -->
+                    <view class="goods-item-desc-about-color">
+                      单位：{{child.unit}} 颜色：{{child.checkd_color}}
+                    </view>
+                  </view>
+                  <view class="goods-item-desc-goodAttr">
+                    <view class="goods-item-desc-goodAttr-price">{{child.goods_price}}元</view>
+                    <view class="goods-item-desc-goodAttr-num">
+                      X{{child.goods_num}}
+                    </view>
+                  </view>
+                </view>
+              </view>
+              <view class="goods-handle" wx:if="{{goodsList.length}}">
+                <!-- 已支付 -->
+                <view wx:if="{{item.pay_status == 1}}" class="pay_status">
+                  <view class="goods-handle-wuliu dd">
+                    <view class="">订单号：{{item.order_code}}</view>
+                  </view>
+                  <view class="goods-handle-wuliu" wx:if='{{item.wl_status == 1}}'>
+                    <image src='../images/wait_send.png'/>
+                    <view class="goods-handle-wuliu-word">待发货</view>
+                  </view>
+                  <view class="goods-handle-wuliu" wx:if='{{item.wl_status == 2 || item.wl_status == 3}}'>
+                    <image src='../images/send.png'/>
+                    <view class="goods-handle-wuliu-active">物流公司：{{item.express_name}}</view>
+                  </view>
+                  <view class="goods-handle-wuliu" wx:if='{{item.wl_status == 2 || item.wl_status == 3}}'>
+                    <image src='../images/send.png'/>
+                    <view class="goods-handle-wuliu-active">物流单号：{{item.express_code}}</view>
+                  </view>
+                </view>
+                <!-- 未付款 -->
+                <view wx:if="{{item.pay_status == 2}}" class="pay_status">
+                  <view class="goods-handle-wuliu dd">
+                    <view class="">订单号：{{item.order_code}}</view>
+                  </view>
+                  <view class="goods-handle-wuliu" wx:if="{{item.order_status == 1}}">
+                    订单未付款
+                  </view>
+                  <view class="goods-handle-wuliu" wx:if="{{item.order_status == 3}}">
+                    订单已过期
+                  </view>
+                  <view class="goods-handle-wuliu" wx:if="{{item.order_status == 2}}">
+                    订单已删除
+                  </view>
+                </view>
+                <view class="goods-handle-btn" wx:if="{{item.order_status == 1}}">
+                  <view class="goods-handle-btn-del" wx:if="{{item}}" data-status="{{item.pay_status}}" bindtap='showDelModal({{item.order_id}})'>
+                    删除订单
+                  </view>
+                  <view class="goods-handle-btn-sure" >
+                    <!-- 已付款-可以操作 -->
+                    <view wx:if="{{item.pay_status == 1}}">
+                      <view wx:if="{{item.wl_status == 1}}" bindtap='sendTip' class="disabledBtn">确认收货</view>
+                      <view wx:if="{{item.wl_status == 2 || item.wl_status == 3}}" class="sureBtn">
+                        <text wx:if="{{item.wl_status == 2}}" bindtap='showShModal({{item.order_id}})'>确认收货</text>
+                        <text wx:if="{{item.wl_status == 3}}">交易成功</text>
+                      </view>
+                    </view>
+                    <!-- 未付款-先支付 -->
+                    <view wx:if="{{item.pay_status == 2}}" style="color:#1f7faf;" bindtap="payOrder({{item}})">
+                      支付订单
+                    </view>
+                  </view>
+                </view>
+              </view>
+            </block>
+          </scroll-view>
+          <!-- 无数据显示时 -->
+          <view class="goods-noData" wx-if="{{!goodsList.length>0}}">
+            暂无数据
+          </view>
+        </view>
+      </view>
+      <!-- <view class="myorder-body-item" wx:if='{{showTab[1]}}'>2</view> -->
+      <!-- <view class="myorder-body-item" wx:if='{{showTab[2]}}'>3</view> -->
+    </view>
+    <i-modal visible="{{ isShowDel }}" bindclick='delMyOrder' actions="{{action}}">
+      <view class="delWord">确认删除该订单？</view>
+    </i-modal>
+    <i-modal visible="{{ isShowSh }}" bindclick='confirmDeal' actions="{{action}}">
+      <view class="delWord">确认是否立即收货？</view>
+    </i-modal>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  import api from '../api/api'
+
+  export default class MyOrder extends wepy.page {
+    onShow() {
+      this.session3rd = wepy.getStorageSync('session3rd')
+      this.imgBaseUrl = this.$parent.globalData.imgBaseUrl
+    }
+    onLoad(opt) {
+      this.session3rd = wepy.getStorageSync('session3rd')
+      console.log(opt.type, 'type')
+      if (opt.type === '3') {
+        this.getMyOrder(1, 2, 1)
+      } else {
+        this.getMyOrder()
+      }
+      this.activeTab = opt.type
+    }
+    config = {
+      navigationBarTitleText: '我的订单',
+      'usingComponents': {
+        'i-modal': '../components/iView-components/modal/index'
+      }
+    }
+    data = {
+      imgBaseUrl: '',
+      // imgBaseUrl: 'http://192.168.8.90',
+      session3rd: '',
+      dealIndex: [],
+      tabs: ['全部', '待付款', '待发货', '待收货', '已过期'],
+      showTab: [true, false, false],
+      activeTab: '',
+      goodsList: [
+        // {
+        //   id: 1,
+        //   name: '安泰-635防霉密封胶',
+        //   size: '300ml*24支/箱',
+        //   color: '白色',
+        //   price: 10,
+        //   isChoose: true,
+        //   num: 5,
+        //   unit: '箱',
+        //   isDeal: false,
+        //   isSend: false
+        // }
+      ],
+      action: [
+        {color: '#999', name: '取消'},
+        {color: '#ff4e4e', name: '确定'}
+      ],
+      isShowDel: false,
+      isShowSh: false,
+      delIndex: '',
+      shIndex: '',
+      isClick: false,
+      payStatus: '',
+      wlStatus: '',
+      orderStatus: '',
+      delTimeObj: {}
+    }
+    methods = {
+      // tab切换
+      changeTab(index) {
+        this.activeTab = index
+        console.log(index, 'index')
+        // 根据不同的tab获取不同的数据
+        if (index === 0) {
+          this.payStatus = ''
+          this.wlStatus = ''
+          this.orderStatus = ''
+        } else if (index === 1) {
+          // 未付款
+          this.payStatus = 2
+          this.wlStatus = ''
+          this.orderStatus = 1
+        } else if (index === 2) {
+          // 待发货
+          this.payStatus = 1
+          this.wlStatus = 1
+          this.orderStatus = 1
+        } else if (index === 3) {
+          // 待收货
+          this.payStatus = 1
+          this.wlStatus = 2
+          this.orderStatus = 1
+        } else if (index === 4) {
+          // 已过期
+          this.payStatus = ''
+          this.wlStatus = ''
+          this.orderStatus = 3
+        }
+        this.getMyOrder(this.payStatus, this.wlStatus, this.orderStatus)
+        // console.log(payStatus)
+      },
+      // 显示删除框
+      showDelModal(id, e) {
+        // console.log(id, e)
+        if (e.currentTarget.dataset.status === '2') {
+          this.isShowDel = true
+          this.delIndex = id
+        }
+      },
+      // 显示收货框
+      showShModal(id) {
+        this.isShowSh = true
+        this.shIndex = id
+      },
+      // 删除订单
+      delMyOrder({ detail }) {
+        this.isShowDel = false
+        if (detail.index === 1) {
+          // 进行删除商品操作
+          api.delOrder({
+            data: {
+              order_id: this.delIndex,
+              session3rd: this.session3rd
+            },
+            method: 'POST'
+          }).then(res => {
+            console.log(res, '删除订单')
+            if (res.code === '200') {
+              this.getMyOrder(this.payStatus, this.wlStatus, this.orderStatus)
+            }
+            wepy.showToast({
+              title: res.message,
+              icon: 'success',
+              duration: 2000,
+              mask: false
+            })
+          })
+        }
+      },
+      // 确认收货
+      confirmDeal({ detail }) {
+        this.isShowSh = false
+        if (detail.index === 1) {
+          // 确认收货
+          api.signOrder({
+            data: {
+              session3rd: this.session3rd,
+              order_id: this.shIndex
+            },
+            method: 'POST'
+          }).then(res => {
+            console.log(res, '确认收货')
+            wepy.showToast({
+              title: res.message,
+              icon: 'success',
+              duration: 2000,
+              mask: false
+            })
+            if (res.code === '200') {
+              this.getMyOrder(this.payStatus, this.wlStatus, this.orderStatus)
+            }
+          })
+        }
+      },
+      // 提示尚未发货
+      sendTip() {
+        wepy.showToast({
+          title: '商品尚未发货!',
+          icon: 'none',
+          duration: 2000,
+          mask: false
+        })
+      },
+      // 发起订单支付
+      payOrder(order) {
+        console.log(order, '订单xq')
+        api.prePayOrder({
+          data: {
+            order_code: order.order_code,
+            money: order.total_price,
+            session3rd: this.session3rd
+          },
+          method: 'POST'
+        }).then(res => {
+          console.log(res, '支付未支付订单')
+          if (res.code === '200') {
+            // 微信支付
+            wepy.requestPayment({
+              timeStamp: res.extraData.timeStamp,
+              nonceStr: res.extraData.nonceStr,
+              package: res.extraData.package,
+              signType: res.extraData.signType,
+              paySign: res.extraData.paySign
+            })
+            .then(res => {
+              console.log(res, '微信支付')
+              if (res.errMsg === 'requestPayment:ok') {
+                // 支付成功
+                wepy.navigateTo({ url: '/pages/successPay' })
+              } else if (res.errMsg === 'requestPayment:fail cancel') {
+                wepy.showToast({
+                  title: '订单未支付!',
+                  icon: 'none',
+                  duration: 2000,
+                  mask: false
+                })
+              }
+            })
+          }
+        })
+      }
+    }
+    // 获取我的订单
+    getMyOrder(payStatus = '', wlStatus = '', orderStatus = '') {
+    //   console.log(payStatus, wlStatus, orderStatus)
+      api.getOrder({
+        data: {
+          session3rd: this.session3rd,
+          // 支付状态 （0未支付，1已支付）
+          pay_status: payStatus,
+          // 物流状态 (0未支付无物流，1未发货，2发货中，3已完成)
+          wl_status: wlStatus,
+          // 订单状态 （2已删除，1正常，3已撤销）
+          order_status: orderStatus
+        },
+        method: 'POST'
+      }).then(res => {
+        console.log(res, '我的订单列表')
+        if (res.code === '200') {
+          this.goodsList = res.extraData
+          for (let i = 0; i < this.goodsList.length; i++) {
+            this.goodsList[i].create_time = +this.goodsList[i].create_time
+            this.timeBack(this.goodsList[i].create_time, this.goodsList[i])
+          }
+          this.$apply()
+          console.log(this.goodsList)
+        }
+      })
+    }
+    // 支付倒计时
+    timeBack(createTime, item) {
+      let delTimeObj = {
+        h: '',
+        m: '',
+        s: '',
+        tip: ''
+      }
+      // 当前时间
+      let nowTime = new Date().getTime()
+      // 订单创建时间
+      let cTime = createTime
+      // 取消时间间隔-两小时
+      let delTime = 60 * 60 * 2 * 1000
+      // 剩余时间= (时间间隔 + 创建时间)-现在时间
+      let leftTime = ((delTime + cTime) - nowTime) / 1000
+      let timeId = setInterval(() => {
+        leftTime--
+        if (leftTime <= 0) {
+          clearInterval(timeId)
+          delTimeObj.h = 0
+          delTimeObj.m = 0
+          delTimeObj.s = 0
+          item.tip = '订单已取消'
+          // 订单取消后，调用删除订单接口
+          // api.delOrder({
+          //   data: {
+          //     order_id: item.order_id,
+          //     session3rd: this.session3rd
+          //   },
+          //   method: 'POST'
+          // }).then(res => {
+          //   console.log(res, '删除订单')
+          //   if (res.code === '200') {
+          //     this.getMyOrder(this.payStatus, this.wlStatus)
+          //   }
+          // })
+        } else {
+          delTimeObj.h = Math.floor(leftTime / 60 / 60)
+          delTimeObj.m = Math.floor(leftTime / 60 % 60)
+          delTimeObj.s = Math.floor(leftTime % 60)
+          delTimeObj.tip = '支付倒计时：' + delTimeObj.h + '小时' + delTimeObj.m + '分' + delTimeObj.s + '秒'
+          item.tip = delTimeObj.tip
+        }
+        console.log(delTimeObj.tip, 'h')
+        this.$apply()
+      }, 1000)
+    }
+  }
+</script>

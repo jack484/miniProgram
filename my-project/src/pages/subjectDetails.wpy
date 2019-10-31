@@ -1,0 +1,953 @@
+<template>
+    <view class="subjectDerails">
+      <i-tabs current="{{ current }}" bindchange="handleChange" class="subjectDerails-tabs">
+        <i-tab key="1" title="专业介绍" color='#5ba8ff'></i-tab>
+        <i-tab key="2" title="就业前景" color='#5ba8ff'></i-tab>
+        <i-tab key="3" title="开设院校" color='#5ba8ff'></i-tab>
+      </i-tabs>
+      <!-- 专业介绍 -->
+      <view wx:if='{{showTabBody[0]}}' class="introduce">
+        <!-- 基本信息 -->
+        <view class="baseInfo">
+          <view class="baseInfo-title">
+            <view class="baseInfo-title-name">基本信息</view>
+            <view class="collectstar">
+              <image class="baseInfo-title-star" src='../icon/collect_icon@3x.png' wx:if='{{!isCollected}}' bind:tap='collectSub'/>
+              <image class="baseInfo-title-star" src='../icon/collect_select_icon@3x.png' wx:if='{{isCollected}}' bind:tap='delCollectSub'/>
+            </view>
+          </view>
+          <view class="baseInfo-content">
+            <view class="baseInfo-content-desc num">
+              <image src='../icon/red_dot@3x.png' class="reddot"/>
+              专业代码：
+              <text>{{subjectDesc.code}}</text>
+            </view>
+            <view class="baseInfo-content-desc level">
+              <image src='../icon/red_dot@3x.png' class="reddot"/>
+              学历层次：
+              <text>{{subjectDesc.bz == 1 ? '本科' : '专科'}}</text>
+            </view>
+            <view class="baseInfo-content-desc degree">
+              <image src='../icon/red_dot@3x.png' class="reddot"/>
+              授予学位：
+              <text>{{subjectDesc.degree}}</text>
+            </view>
+            <view class="baseInfo-content-desc years">
+              <image src='../icon/red_dot@3x.png' class="reddot"/>
+              修学年限：
+              <text>{{subjectDesc.xz}}</text>
+            </view>
+          </view>
+        </view>
+        <!-- 开设课程 -->
+        <view class="openClass">
+          <view class="openClass-title">开设课程</view>
+          <view class="openClass-content">{{subjectDesc.course}}</view>
+          <view class="openClass-content" wx:if='{{!subjectDesc.course}}'>暂无数据</view>
+        </view>
+        <!-- 专业解读 -->
+        <view class="subDetail">
+          <view class="subDetail-title">专业解读</view>
+          <view class="subDetail-content">
+            <text class="subDetail-content-target">业务培养目标：</text>
+            <text>{{subjectDesc.major_goal}}</text><text wx:if='{{!subjectDesc.major_goal}}'>暂无数据</text>
+            <view class="subDetail-content-require" wx:if='{{isShowSubrequire}}'>
+              <text class="subDetail-content-require-head">业务培养要求：</text><text>{{subjectDesc.major_require}}</text><text wx:if='{{!subjectDesc.major_require}}'>暂无数据</text>
+            </view>
+          </view>
+            <view class="subDetail-more" bind:tap='showSubrequire' wx:if='{{!isShowSubrequire}}'>
+              <image src='../icon/gray_arrow_down@3x.png' class='icon-down'/>
+            </view>
+        </view>
+        <!-- 相似专业 -->
+        <view class="sameSub">
+          <view class="sameSub-title">相似专业</view>
+          <view class="sameSub-content">
+            <block wx:for='{{subjectDesc.major_similar}}' wx:key='index'>
+              <view class="sameSub-content-sub">{{item}}</view>
+            </block>
+            <view wx:if='{{!subjectDesc.major_similar.length}}'>暂无相似专业</view>
+          </view>
+        </view>
+      </view>
+      <!-- 就业前景 -->
+      <view wx:if='{{showTabBody[1]}}' class="work">
+        <!-- 就业前景 -->
+        <view class="work-future">
+          <view class="work-future-title">就业前景</view>
+          <view class="work-future-content">{{subjectFuture.jyqj}}</view>
+          <view class="work-future-content" wx:if="{{!subjectFuture.jyqj}}">暂无数据</view>
+        </view>
+        <!-- 就业方向 -->
+        <view class="work-direction">
+          <view class="work-direction-title">就业方向</view>
+          <view class="work-direction-content">{{subjectFuture.jyfx}}</view>
+          <view class="work-direction-content" wx:if="{{!subjectFuture.jyfx}}">暂无数据</view>
+        </view>
+      </view>
+      <!-- 开设院校 -->
+      <view wx:if='{{showTabBody[2]}}' class="aboutSchool">
+        <!-- 筛选栏 -->
+        <view class="filterTab">
+          <view class="mask"></view>
+          <view class="{{isOpacity ? 'bg' : ''}}"  bind:tap='closeTab'></view>
+          <!-- 筛选tab -->
+          <view class="tab-head" bind:tap='showBg'>
+            <view class="tabs-item {{ tabsActiveIndex[0] ? 'active' : '' }}" bind:tap='switchTabsHandle({{0}})'>
+              <text><text wx:if="{{!checkedName[0]}}">所在地</text><text wx:if='{{checkedName[0]}}'>{{ checkedName[0] }}</text><text class="icon {{ tabsActiveIndex[0] ? 'iconActive' : '' }}"></text></text>
+            </view>
+
+            <view class="tabs-item {{ tabsActiveIndex[1] ? 'active' : '' }}" bind:tap='switchTabsHandle({{1}})'>
+              <text><text wx:if='{{!checkedName[1]}}'>学校类型</text><text wx:if='{{checkedName[1]}}'>{{ checkedName[1] }}</text><text class="icon {{ tabsActiveIndex[1] ? 'iconActive' : '' }}"></text></text>
+            </view>
+          </view>
+          <!-- 筛选体 -->
+          <view class="tabs-body">
+            <block wx:for='{{showTab}}' wx:key='index'>
+              <view class="tabs-content" wx:if='{{showTab[index]}}'>
+                <block wx:for='{{tabData[index]}}' wx:key='indexData' wx:for-index='indexData' wx:for-item='child'>
+                  <view class="option {{ child.selected  ? 'selected' : ''}}" bind:tap='selectThisPart({{child}},{{index}},{{indexData}})' data-select='{{indexData}}'>{{child.type}}</view>
+                </block>
+                <view class="tabs-tips">
+                  <view class="checkMore">单选</view>
+                  <view class="sure" bind:tap='submitData({{index}})' wx:if='{{checkedName[index]}}'>确定</view>
+                </view>
+              </view>
+            </block>
+          </view>
+        </view>
+        <scroll-view scroll-y="true" style="white-space: nowrap;width: 100%;height:91.5%;position:absolute; top:100rpx; left:0rpx; background-color:#f2f5f7;">
+        <!-- 学校列表 -->
+        <view class="schoolList">
+          <block wx:for='{{subjectKSYX}}' wx:key='index' wx:if='{{!subjectKSYX == []}}'>
+            <view class="schoolInfo" bind:tap='jumpToSchoolDetails({{item}})'>
+              <view class="Info_left">
+                <image class="schoolLogo" src='https://img.baokaodaxue.com{{item.img}}' />
+              </view>
+              <view class="Info_right">
+                <view class="schoolName">{{item.name}}</view>
+                <view class="schoolTags">
+                  <text class="tag keyTag" wx:if="{{item.is985 == '1' ? true : false}}">985</text>
+                  <text class="tag keyTag" wx:if="{{item.is211 == '1' ? true : false}}">211</text>
+                  <text class="tag keyTag" wx:if="{{item.isDoubleA == '1' ? true : false}}">双一流</text>
+                  <text class="tag">{{item.level == 1 ? '本科' : '专科'}}</text>
+                  <text class="tag">{{item.typeid}}</text>
+                </view>
+                <view class="schoolCity">{{item.location}}</view>
+              </view>
+            </view>
+          </block>
+          <!-- 筛选 -->
+          <!-- 一项 -->
+          <block wx:for='{{screen}}' wx:key='index'  wx:if='{{!screen == []}}'>
+            <view class="schoolInfo" bind:tap='jumpToSchoolDetails({{item}})' data-cid='{{item.cid}}'>
+              <view class="Info_left">
+                <image class="schoolLogo" src='https://img.baokaodaxue.com{{item.img}}' lazy-load/>
+              </view>
+              <view class="Info_right">
+                <view class="schoolName">{{item.name}}</view>
+                <view class="schoolTags">
+                  <text class="tag keyTag" wx:if="{{item.is985 == '1' ? true : false}}">985</text>
+                  <text class="tag keyTag" wx:if="{{item.is211 == '1' ? true : false}}">211</text>
+                  <text class="tag keyTag" wx:if="{{item.isDoubleA == '1' ? true : false}}">双一流</text>
+                  <text class="tag">{{item.level == 1 ? '本科' : '专科'}}</text>
+                  <text class="tag">{{item.typeid}}</text>
+                </view>
+                <view class="schoolCity">{{item.location}}</view>
+              </view>
+            </view>
+          </block>
+          <!-- 两项 -->
+          <block wx:for='{{screenTwo}}' wx:key='index'  wx:if='{{!screenTwo == []}}'>
+            <view class="schoolInfo" bind:tap='jumpToSchoolDetails({{item}})' data-cid='{{item.cid}}'>
+              <view class="Info_left">
+                <image class="schoolLogo" src='http://img.baokaodaxue.com{{item.img}}' lazy-load/>
+              </view>
+              <view class="Info_right">
+                <view class="schoolName">{{item.name}}</view>
+                <view class="schoolTags">
+                  <text class="tag keyTag" wx:if="{{item.is985 == '1' ? true : false}}">985</text>
+                  <text class="tag keyTag" wx:if="{{item.is211 == '1' ? true : false}}">211</text>
+                  <text class="tag keyTag" wx:if="{{item.isDoubleA == '1' ? true : false}}">双一流</text>
+                  <text class="tag">{{item.level == 1 ? '本科' : '专科'}}</text>
+                  <text class="tag">{{item.typeid}}</text>
+                </view>
+                <view class="schoolCity">{{item.location}}</view>
+              </view>
+            </view>
+          </block>
+          <view class="dataTips">已到底部，数据来源于各省考试院</view>
+        </view>
+      </scroll-view>
+      </view>
+    </view>
+</template>
+<script>
+import wepy from 'wepy'
+
+import api from '../api/api'
+
+import com from '../utils/common'
+
+export default class SubjectDerail extends wepy.page {
+  config = {
+    'component': true,
+    'usingComponents': {
+      'i-tabs': '../components/iView-components/tabs/index',
+      'i-tab': '../components/iView-components/tab/index'
+    },
+    navigationBarBackgroundColor: '#fff',
+    navigationBarTextStyle: 'black'
+  }
+  data = {
+    currentBarTitle: '',
+    current: '1',
+    subCode: '',
+    showTabBody: [true, false, false],
+    isShowSubrequire: false,
+    // tab数据开始
+    isOpacity: false,
+    tabsList: ['所在地', '学校类型'],
+    tabBody: [1, 2],
+    tabsActiveIndex: [false, false],
+    tabData: [
+      [
+        {type: '全国', typeId: 0, selected: false},
+        {type: '北京', typeId: 1, selected: false},
+        {type: '天津', typeId: 2, selected: false},
+        {type: '上海', typeId: 3, selected: false},
+        {type: '重庆', typeId: 4, selected: false},
+        {type: '河北', typeId: 5, selected: false},
+        {type: '河南', typeId: 6, selected: false},
+        {type: '山东', typeId: 7, selected: false},
+        {type: '山西', typeId: 8, selected: false},
+        {type: '安徽', typeId: 9, selected: false},
+        {type: '江西', typeId: 10, selected: false},
+        {type: '江苏', typeId: 11, selected: false},
+        {type: '浙江', typeId: 12, selected: false},
+        {type: '湖北', typeId: 13, selected: false},
+        {type: '湖南', typeId: 14, selected: false},
+        {type: '广东', typeId: 15, selected: false},
+        {type: '广西', typeId: 16, selected: false},
+        {type: '云南', typeId: 17, selected: false},
+        {type: '贵州', typeId: 18, selected: false},
+        {type: '四川', typeId: 19, selected: false},
+        {type: '陕西', typeId: 20, selected: false},
+        {type: '青海', typeId: 21, selected: false},
+        {type: '宁夏', typeId: 22, selected: false},
+        {type: '黑龙江', typeId: 23, selected: false},
+        {type: '吉林', typeId: 24, selected: false},
+        {type: '辽宁', typeId: 25, selected: false},
+        {type: '西藏', typeId: 26, selected: false},
+        {type: '新疆', typeId: 27, selected: false},
+        {type: '内蒙古', typeId: 28, selected: false},
+        {type: '海南', typeId: 29, selected: false},
+        {type: '福建', typeId: 30, selected: false},
+        {type: '甘肃', typeId: 31, selected: false}
+      ],
+      [
+        {type: '不限', typeId: 0, selected: false},
+        {type: '综合', typeId: 1, selected: false},
+        {type: '工科', typeId: 2, selected: false},
+        {type: '师范', typeId: 3, selected: false},
+        {type: '财经', typeId: 4, selected: false},
+        {type: '政法', typeId: 5, selected: false},
+        {type: '语言', typeId: 6, selected: false},
+        {type: '医药', typeId: 7, selected: false},
+        {type: '农业', typeId: 8, selected: false},
+        {type: '林业', typeId: 9, selected: false},
+        {type: '民族', typeId: 10, selected: false},
+        {type: '艺术', typeId: 11, selected: false},
+        {type: '体育', typeId: 12, selected: false},
+        {type: '军事', typeId: 13, selected: false}
+      ]
+    ],
+    showTab: [false, false],
+    isCollected: false,
+    subjectDesc: {},
+    subjectFuture: {},
+    subjectKSYX: [],
+    subjectCollectArr: [],
+    screen: [],
+    screenTwo: [],
+    provId: '',
+    schoolTypeId: '',
+    checkedName: [],
+    chechIndex: -1,
+    tipOne: false,
+    tipTwo: false,
+    page: 1,
+    kq: '',
+    KQname: '',
+    isShare: false,
+    uid: ''
+  }
+  methods = {
+    // 切换tab功能
+    handleChange ({ detail }) {
+      this.current = +detail.key
+      com.handleChangeFor(this.showTabBody, this.current)
+      wepy.showLoading({
+        title: '加载中',
+        mask: true
+      }).then(() => {
+        if (this.current === 2) {
+          this.getSubFuture(this.subCode)
+        } else if (this.current === 3) {
+          // this.getSubKSYX(this.page, this.subCode)
+          this.getSubKSYX(this.subCode, this.provId, this.schoolTypeId)
+        }
+        wepy.hideLoading()
+      })
+    },
+    // 显示培养要求
+    showSubrequire() {
+      this.isShowSubrequire = true
+    },
+    showBg() {
+      this.isOpacity = !this.isOpacity
+    },
+    // 点击确定
+    submitData(index) {
+      console.log(index, 'index')
+      // if (index === 0) {
+      //   this.provId = ''
+      // } else if (index === 1) {
+      //   this.schoolTypeId = ''
+      // }
+
+      if (this.checkType === 0) {
+        if (index === 0) {
+          this.checkedName[0] = '所在地'
+        } else if (index === 1) {
+          this.checkedName[1] = '学校类型'
+        }
+      }
+      // this.checkedName[index] = ''
+      this.closeTab()
+      // this.getSubKSYX(this.subCode, this.provId, this.schoolTypeId)
+    },
+    // 点击选择tabBody中的选项（）
+    selectThisPart(item, index, indexData) {
+      console.log(item, 'item')
+      console.log(index, 'index')
+
+      if (index === 0) {
+        this.provId = item.typeId
+      } else if (index === 1) {
+        this.schoolTypeId = item.typeId
+      }
+      this.checkedName[index] = item.type
+      this.screen = []
+      this.screenTwo = []
+      this.ctrlSingerChecked(this.tabData[index], item)
+      this.getSubKSYX(this.subCode, this.provId, this.schoolTypeId)
+      this.checkType = indexData
+      this.$apply()
+    },
+    // 开设院校的tab切换
+    switchTabsHandle(index, e) {
+      if (index === 0) {
+        this.showTab[0] = !this.showTab[0]
+        this.showTab[1] = false
+
+        this.tabsActiveIndex[0] = !this.tabsActiveIndex[0]
+        this.tabsActiveIndex[1] = false
+      } else if (index === 1) {
+        this.showTab[1] = !this.showTab[1]
+        this.showTab[0] = false
+
+        this.tabsActiveIndex[1] = !this.tabsActiveIndex[1]
+        this.tabsActiveIndex[0] = false
+      }
+      this.tabsActiveIndex[index] = this.showTab[index]
+      this.isOpacity = !this.showTab[index]
+      this.selectArr = []
+    },
+    // 跳转到学校详情页面
+    jumpToSchoolDetails(schoolInfo) {
+      // 传入当前点击院校的id，进行信息匹配
+      wepy.showLoading({
+        title: '加载学校中',
+        mask: true
+      }).then(() => {
+        wepy.navigateTo({ url: `/pages/schoolDetails?name=${schoolInfo.name}&cid=${schoolInfo.cid}&is211=${schoolInfo.is211}&is985=${schoolInfo.is985}&typeid=${schoolInfo.typeid}&level=${schoolInfo.level}&img=${schoolInfo.img}&isDoubleA=${schoolInfo.isDoubleA}&kq=${this.kq}&kqname=${this.KQname}` })
+      })
+    },
+    // 收藏专业
+    collectSub() {
+      this.isCollected = true
+      if (!this.subjectCollectArr) {
+        this.subjectCollectArr = []
+      }
+      this.subjectCollectArr.push(this.subCode)
+      wepy.setStorageSync('subjectCollect', this.subjectCollectArr)
+
+      api.collectSubject({
+        data: {code: this.subCode},
+        method: 'POST'
+      }).then(res => {
+        if (res.code === '200') {
+          console.log(res, 'true')
+          wepy.showToast({
+            title: res.message,
+            icon: 'success',
+            duration: 2000,
+            mask: true
+          })
+        }
+      })
+    },
+    // 取消收藏专业
+    delCollectSub() {
+      this.isCollected = false
+      // 删除收藏标识
+      this.subjectCollectArr = wepy.getStorageSync('subjectCollect')
+      for (let i = 0; i < this.subjectCollectArr.length; i++) {
+        if (this.subjectCollectArr[i] === this.subCode) {
+          this.subjectCollectArr.splice(i, 1)
+          wepy.setStorageSync('subjectCollect', this.subjectCollectArr)
+        }
+      }
+      api.delCollectSubject({
+        data: {code: this.subCode},
+        method: 'POST'
+      }).then(res => {
+        if (res.code === '200') {
+          wepy.showToast({
+            title: res.message,
+            icon: 'success',
+            duration: 2000,
+            mask: true
+          })
+        }
+      })
+    }
+  }
+  // onShow() {
+  //   this.subjectCollectArr = wepy.getStorageSync('subjectCollect')
+  //   for (let i = 0; i < this.subjectCollectArr.length; i++) {
+  //     if (this.subjectCollectArr[i] === this.subCode) {
+  //       this.isCollected = true
+  //     }
+  //   }
+  // }
+//   onUnload() {
+//     wepy.setNavigationBarTitle({title: '授权登录'})
+//   }
+  onLoad(options) {
+    console.log(options, 'sD')
+    // 分享页
+    var share = wepy.getStorageSync('share')
+    // console.log(share)
+    if (!options.code && share.fromPage === 'subjectDetails') {
+      this.currentBarTitle = share.pageTitle
+      this.subCode = share.code
+      this.kq = share.kq
+      this.KQname = share.kqname
+    } else {
+      this.currentBarTitle = options.pageTitle
+      this.subCode = options.code
+      this.kq = wepy.getStorageSync('kq') || 15
+      this.KQname = wepy.getStorageSync('KQname') || '广东'
+    }
+    wepy.setNavigationBarTitle({title: this.currentBarTitle})
+
+    this.subjectCollectArr = wepy.getStorageSync('subjectCollect')
+    for (let i = 0; i < this.subjectCollectArr.length; i++) {
+      if (this.subjectCollectArr[i] === this.subCode) {
+        this.isCollected = true
+      }
+    }
+    this.uid = wepy.getStorageSync('uid')
+    wepy.showLoading({
+      title: 'Loading...',
+      mask: true
+    }).then(() => {
+      this.getSubIntr(this.subCode)
+      wepy.hideLoading()
+    })
+  }
+  // 关闭tab选择
+  closeTab() {
+    this.showTab = [false, false, false, false]
+    this.isOpacity = false
+    this.tabsActiveIndex = [false, false, false, false]
+    // this.tabsActiveIndex = -1
+  }
+  // 页面转发功能
+  onShareAppMessage(res) {
+    if (res.from === 'button') {
+      // 来自页面内转发按钮
+      console.log(res.target)
+    }
+    return {
+      title: this.currentBarTitle,
+      path: `/pages/authorize_new?fromPage=subjectDetails&code=${this.subCode}&pageTitle=${this.currentBarTitle}&kq=${this.kq}&kqname=${this.KQname}&shareId=${this.uid}`
+    }
+  }
+  // 专业介绍请求
+  getSubIntr(code) {
+    api.getSubjectIntr({
+      data: {code: code}
+    }).then(res => {
+      if (res.code === '200') {
+        this.subjectDesc = res.extraData
+        this.$apply()
+      }
+    })
+  }
+  // 就业前景请求
+  getSubFuture(code) {
+    api.getSubjectFuture({
+      data: {code: code}
+    }).then(res => {
+      if (res.code === '200') {
+        console.log(res)
+        this.subjectFuture = res.extraData
+        this.$apply()
+      }
+    })
+  }
+  // 开设院校请求
+  getSubKSYX(code, dq, fw) {
+    let data = {
+      code: code,
+      kq: this.kq
+    }
+    if (dq && dq !== '所在地') {
+      data.dq = dq
+    }
+    if (fw && fw !== '学校类型') {
+      data.fw = fw
+    }
+    api.getSubjectKSYX({
+      data: data
+    }).then(res => {
+      wepy.showLoading({
+        title: '正在加载',
+        mask: true
+      }).then(() => {
+        if (res.code === '200') {
+          for (let i = 0; i < res.extraData.length; i++) {
+            res.extraData[i].typeid = com.filterSchoolType(res.extraData[i].typeid)
+          }
+          // 正常不筛选
+          if (!dq && !fw) {
+            this.screen = []
+            this.screenTwo = []
+            if (!this.subjectKSYX) {
+              this.subjectKSYX = []
+            }
+            this.subjectKSYX = res.extraData
+          }
+
+          // 筛选地区
+          if (!this.screen) {
+            this.screen = []
+          }
+
+          // 只选择一项
+          if (dq || fw) {
+            this.subjectKSYX = []
+            this.screenTwo = []
+            this.screen = res.extraData
+            if (this.screen === []) {
+              this.tipOne = true
+            }
+          }
+
+          // 选择两项
+          if (dq && fw) {
+            this.subjectKSYX = []
+            this.screen = []
+            this.screenTwo = res.extraData
+          }
+          console.log(this.subjectKSYX, 'yx')
+          this.$apply()
+          wepy.hideLoading()
+        }
+      })
+    })
+  }
+  ctrlSingerChecked(typeArr, item) {
+    let index = item.typeId
+    console.log(index, '单选')
+    for (let i = 0; i < typeArr.length; i++) {
+      typeArr[i].selected = false
+    }
+    typeArr[index].selected = !typeArr[index].selected
+    console.log(typeArr[index].selected)
+  }
+}
+</script>
+<style lang="less" scoped>
+.subjectDerails{
+  background-color: #f2f4f7;
+  &-tabs{
+    width: 750rpx;
+    height: 90rpx;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: #fff;
+    z-index: 3;
+    i-tab{
+      position: absolute;
+      top: 0;
+      left: 80rpx;
+      &:nth-child(2){
+        left: 320rpx;
+      }
+      &:nth-child(3){
+        left: 560rpx;
+      }
+    }
+  }
+}
+.introduce{
+  margin-top: 14rpx;
+  padding-top: 90rpx;
+  .baseInfo{
+    width: 750rpx;
+    height: 216rpx;
+    background-color: #fff;
+    &-title{
+      font-size: 30rpx;
+      height: 70rpx;
+      line-height: 70rpx;
+      display: flex;
+      padding: 0 20rpx;
+      justify-content:space-between;
+      border-bottom: 1rpx solid #dcdcdc;
+      font-weight: 600;
+      position: relative;
+      &-star{
+        width: 42rpx;
+        height: 42rpx;
+        position: absolute;
+        top: 10rpx;
+        right: 20rpx;
+      }
+    }
+    &-content{
+      width: 750rpx;
+      height: 146rpx;
+      // display: flex;
+      // flex-wrap: wrap;
+      margin-top: 15rpx;
+      // margin-left: 60rpx;
+      box-sizing: border-box;
+      position: relative;
+      color: #999;
+      &-desc{
+        font-size: 28rpx;
+        // width: 335rpx;
+        height: 58rpx;
+        line-height: 58rpx;
+        position: absolute;
+        top: 0;
+        .reddot{
+          width: 26rpx;
+          height: 26rpx;
+          position: absolute;
+          top: 15rpx;
+          left: -40rpx;
+        }
+      }
+      .num{
+        left: 60rpx;
+      }
+      .level{
+        left: 506rpx;
+      }
+      .degree{
+        top: 55rpx;
+        left: 60rpx;
+      }
+      .years{
+        left: 506rpx;
+        top: 55rpx;
+      }
+    }
+  }
+  .openClass{
+    background-color: #fff;
+    margin-top: 14rpx;
+    width: 750rp;
+    &-title{
+      font-size: 30rpx;
+      font-weight: 600;
+      height: 70rpx;
+      line-height: 70rpx;
+      padding: 0 20rpx;
+      border-bottom: 1rpx solid #dcdcdc;
+    }
+    &-content{
+      font-size: 26rpx;
+      color: #999;
+      margin: 20rpx 20rpx 0 20rpx;
+      padding-bottom: 20rpx;
+      line-height: 44rpx;
+    }
+  }
+  .subDetail{
+    background-color: #fff;
+    margin-top: 14rpx;
+    width: 750rp;
+    position: relative;
+    &-title{
+      height: 70rpx;
+      line-height: 70rpx;
+      padding: 0 20rpx;
+      border-bottom: 1rpx solid #dcdcdc;
+      font-size: 30rpx;
+      font-weight: 600;
+    }
+    &-content{
+      margin: 20rpx 20rpx 0 20rpx;
+      font-size: 26rpx;
+      color: #999;
+      padding-bottom: 20rpx;
+      line-height: 44rpx;
+      &-target{
+        color: #333;
+      }
+      &-require{
+        &-head{
+          color: #333;
+        }
+      }
+    }
+    &-more{
+      width: 750rpx;
+      height: 50rpx;
+      line-height: 30rpx;
+      text-align: center;
+      .icon-down{
+        width: 30rpx;
+        height: 15rpx;
+      }
+    }
+  }
+  .sameSub{
+    width: 750rpx;
+    background-color: #fff;
+    margin-top: 14rpx;
+    &-title{
+      font-size: 30rpx;
+      height: 70rpx;
+      line-height: 70rpx;
+      padding: 0 20rpx;
+      border-bottom: 1rpx solid #dcdcdc;
+      font-weight: 600;
+    }
+    &-content{
+      font-size: 26rpx;
+      color: #999;
+      display: flex;
+      flex-wrap: wrap;
+      padding: 10rpx 20rpx 10rpx 20rpx;
+      line-height: 44rpx;
+      &-sub{
+        width: 355rpx;
+        height: 46rpx;
+        line-height: 46rpx;
+      }
+    }
+  }
+}
+.work{
+  padding-top: 90rpx;
+  height: 100vh;
+  box-sizing: border-box;
+  &-future,
+  &-direction{
+    background-color: #fff;
+    margin-top: 14rpx;
+    width: 750rp;
+    &-title{
+      font-size: 30rpx;
+      height: 70rpx;
+      line-height: 70rpx;
+      padding: 0 20rpx;
+      border-bottom: 1rpx solid #dcdcdc;
+      font-weight: 600;
+    }
+    &-content{
+      font-size: 28rpx;
+      color: #999;
+      padding: 10rpx 20rpx 10rpx 20rpx;
+      line-height: 44rpx;
+    }
+  }
+}
+.aboutSchool{
+  width: 750rpx;
+  .filterTab{
+    width: 750rpx;
+    text-align: center;
+    line-height: 90rpx;
+    font-size: 28rpx;
+    position: fixed;
+    top: 100rpx;
+    left: 0;
+    z-index: 2;
+    .tab-head{
+      display: flex;
+      background-color: #fff;
+      view {
+        color: #000;
+        box-sizing: border-box;
+        border: 1rpx solid #dcdcdc;
+        margin-left: -1rpx;
+        width: 180rpx;
+        height: 90rpx;
+        flex: 1;
+      }
+      .active{
+        color: #5ba8ff;
+      }
+      .active:after {
+        border-bottom-color: #5ba8ff;
+      }
+      .tabs-item text{
+        position: relative;
+        .icon{
+          display: block;
+          content: '';
+          border: 8rpx solid transparent;
+          border-top-color: #999;
+          border-left-width: 8rpx;
+          border-right-width: 8rpx;
+          position: absolute;
+          bottom: 3rpx;
+          right: -25rpx;
+        }
+        .iconActive{
+          border-top-color: transparent;
+          border-bottom-color: #5ba8ff;
+          bottom: 10rpx;
+        }
+      }
+    }
+    .tabs-body{
+      background-color: #fff;
+      .tabs-content{
+        display: flex;
+        flex-wrap: wrap;
+        font-size: 28rpx;
+        .option{
+          width: 150rpx;
+          height: 78rpx;
+          line-height: 78rpx;
+          color: #999;
+        }
+        .selected{
+          color: #5ba8ff;
+        }
+      }
+    }
+    .tabs-tips{
+      width: 750rpx;
+      display: flex;
+      justify-content: space-between;
+      background-color: #fff;
+      line-height: 60rpx;
+      font-size: 28rpx;
+      padding-bottom: 40rpx;
+      .checkMore{
+        margin-left: 40rpx;
+        height: 60rpx;
+      }
+      .sure{
+        margin-right: 40rpx;
+        height: 60rpx;
+        width: 120rpx;
+        background-color: #5ba8ff;
+        color: #fff;
+        border-radius: 15rpx;
+      }
+    }
+    .batch{
+      border-right:none;
+    }
+  }
+  .schoolList{
+    padding-top: 100rpx;
+    .schoolInfo{
+      background-color:#fff;
+      width: 750rpx;
+      height: 130rpx;
+      margin-bottom: 10rpx;
+      display: flex;
+      position: relative;
+      .Info_left{
+        width: 130rpx;
+        height: 130rpx;
+        .schoolLogo{
+          width: 90rpx;
+          height: 90rpx;
+          margin: 20rpx;
+        }
+      }
+      .Info_right{
+        width: 620rpx;
+        height: 120rpx;
+        font-size: 24rpx;
+        .schoolName{
+          font-size: 34rpx;
+          height: 75rpx;
+          line-height: 75rpx;
+          color: #333;
+        }
+        .schoolTags{
+          height: 55rpx;
+          .tag{
+            padding: 5rpx 10rpx;
+            margin-right: 16rpx;
+            color: #999;
+          }
+          .keyTag{
+            background-color: #5ba8ff;
+            color: #fff;
+            border-radius: 10rpx;
+          }
+        }
+        .schoolCity{
+          position: absolute;
+          bottom: 20rpx;
+          right: 20rpx;
+          color: #999;
+        }
+      }
+    }
+  }
+  .bg{
+    width: 750rpx;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, .3);
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: -1;
+  }
+  .mask{
+    width: 750rpx;
+    height: 20rpx;
+    position: fixed;
+    top: 80rpx;
+    left: 0rpx;
+    z-index: 3;
+    background-color: #f2f5f7;
+  }
+  .dataTips{
+      height: 50rpx;
+      line-height: 50rpx;
+      background-color: #f2f5f7;
+      font-size: 26rpx;
+      text-align: center;
+      color: #999;
+    }
+}
+</style>

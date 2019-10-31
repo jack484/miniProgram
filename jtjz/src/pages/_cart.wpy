@@ -1,0 +1,840 @@
+<style lang="less">
+.cart{
+  background-color: #f5f5f5;
+  height: 100vh;
+  overflow: hidden;
+  &-topHandle{
+    background-color: #fff;
+    height: 80rpx;
+    line-height: 80rpx;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 30rpx;
+    font-size: 26rpx;
+    margin-bottom: 20rpx;
+    color: #333;
+    border-top: 1rpx solid #dcdcdc;
+    &-right{
+      color: #1c80b2;
+    }
+  }
+  &-chooseAddress{
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: rgba(0,0,0,.3);
+    width: 100%;
+    height: 100%;
+    &-box{
+      position: absolute;
+      bottom: 0rpx;
+      left: 0;
+      z-index: 33;
+      width: 750rpx;
+      background-color: #f5f5f5;
+      font-size: 26rpx;
+      &-title{
+        height: 65rpx;
+        line-height: 65rpx;
+        padding-left: 35rpx;
+        color: #999;
+        position: relative;
+        i-icon{
+          position: absolute;
+          right: 30rpx;
+          top: 0rpx;
+        }
+      }
+      &-item{
+        image{
+          width: 40rpx;
+          height: 40rpx;
+          position: absolute;
+          left: 25rpx;
+          top: 50rpx;
+        }
+        &-desc{
+          overflow: hidden;
+          position: relative;
+          padding: 40rpx 0rpx 0 90rpx;
+          height: 140rpx;
+          box-sizing: border-box;
+          background-color: #fff;
+          font-size: 28rpx;
+          line-height: 50rpx;
+          border-bottom: 1rpx solid #dcdcdc;
+        }
+      }
+      &-add{
+        text-align: center;
+        height: 100rpx;
+        line-height: 100rpx;
+        font-size: 30rpx;
+        background-color: #fff;
+        color: #1c80b2;
+      }
+    }
+  }
+  &-goodsList{
+    &-item{
+      height: 230rpx;
+      background-color: #fff;
+      display: flex;
+      padding: 25rpx 30rpx;
+      box-sizing: border-box;
+      margin-bottom: 20rpx;
+      position: relative;
+      &-img{
+        position: relative;
+        &-tu{
+          width: 180rpx;
+          height: 180rpx;
+          // background-color: #f5f5f5;
+          margin-left: 80rpx;
+          margin-right: 25rpx;
+        }
+        &-choose{
+          width: 60rpx;
+          height: 60rpx;
+          line-height: 60rpx;
+          text-align: center;
+          position: absolute;
+          top:50%;
+          transform: translateY(-50%);
+          left: 0rpx;
+          image{
+            width: 40rpx;
+            height: 40rpx;
+          }
+        }
+      }
+      &-desc{
+        font-size: 28rpx;
+        &-about{
+          margin-bottom: 30rpx;
+          line-height: 38rpx;
+        }
+        &-goodAttr{
+          display: flex;
+          &-price{
+            height: 26rpx;
+            line-height: 26rpx;
+            margin-right: 150rpx;
+            color: #ff4e4e;
+          }
+          &-num{
+            display: flex;
+            overflow: hidden;
+            border: 1rpx solid #999;
+            position: absolute;
+            right: 30rpx;
+            bottom: 25rpx;
+            .numBtn{
+              width: 40rpx;
+              height: 40rpx;
+              line-height: 40rpx;
+              padding: 0;
+              margin: 0;
+              border-radius: 0;
+              text-align: center;
+              box-sizing: border-box;
+              color: #16aa8d;
+              &-left{
+                border-right: 1rpx solid #999;
+              }
+              &-right{
+                border-left: 1rpx solid #999;
+              }
+            }
+            input{
+              width: 100rpx;
+              height: 38rpx;
+              line-height: 38rpx;
+              text-align: center;
+              font-size: 22rpx;
+              min-height: 0;
+              color: #333;
+            }
+          }
+        }
+      }
+    }
+  }
+  &-pay{
+    height: 100rpx;
+    width: 750rpx;
+    // background-color: #fff;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    &-total{
+      width: 550rpx;
+      height: 100rpx;
+      line-height: 100rpx;
+      display: flex;
+      justify-content: space-between;
+      font-size: 28rpx;
+      background-color: #fff;
+      &-chooseAll{
+        width: 100rpx;
+        padding-left: 25rpx;
+        position: relative;
+        image{
+          width: 40rpx;
+          height: 40rpx;
+        }
+        .all{
+          position: absolute;
+          bottom: -3rpx;
+          left: 25rpx;
+          color: #999;
+          font-size: 20rpx;
+          height: 50rpx;
+          line-height: 50rpx;
+        }
+      }
+      &-allPrice{
+        font-size: 30rpx;
+        color: #333;
+        margin-right: 30rpx;
+        .all{
+          margin-right: 10rpx;
+        }
+        .price{
+          color: #ff4e4e;
+        }
+      }
+    }
+    &-toPay{
+      &-btn{
+        width: 200rpx;
+        height: 100rpx;
+        border-radius: 0;
+        line-height: 100rpx;
+        font-size: 28rpx;
+        padding: 0;
+        background-color: #1c80b2;
+        color: #fff;
+        text-align: center;
+        &:after{
+          border: 0;
+        }
+      }
+    }
+  }
+  &-edit{
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 750rpx;
+    height: 100rpx;
+    line-height: 100rpx;
+    display: flex;
+    justify-content: space-between;
+    font-size: 28rpx;
+    &-chooseAll{
+      background-color: #fff;
+      width: 360rpx;
+      padding-left: 25rpx;
+      position: relative;
+      image{
+        width: 40rpx;
+        height: 40rpx;
+      }
+      .all{
+        position: absolute;
+        bottom: -3rpx;
+        left: 25rpx;
+        color: #999;
+        font-size: 20rpx;
+        height: 50rpx;
+        line-height: 50rpx;
+      }
+    }
+    &-handle{
+      background-color: #fff;
+      display: flex;
+      text-align: center;
+      padding-top: 20rpx;
+      font-size: 26rpx;
+      view{
+        width: 160rpx;
+        height: 70rpx;
+        border-radius: 10rpx;
+        line-height: 70rpx;
+        text-align: center;
+        box-sizing: border-box;
+        margin-right: 25rpx;
+      }
+      &-collect{
+        border: 1rpx solid #1c80b2;
+        color: #1c80b2;
+      }
+      &-delete{
+        background-color: #ff4e4e;
+        color: #fff;
+      }
+    }
+  }
+  .disabled{
+    color: #ccc!important;
+  }
+  .cant{
+    background-color: #ccc!important;
+    color: #fff;
+  }
+  .delWord{
+    color: #333;
+  }
+  .emptyTip{
+    width: 750rpx;
+    height: 100rpx;
+    line-height: 100rpx;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    color: #999;
+    font-size: 28rpx;
+    text-align: center;
+  }
+  .emptyAddress{
+    height: 280rpx;
+    text-align: center;
+    line-height: 280rpx;
+    width: 750rpx;
+    font-size: 28rpx;
+    color: #999;
+  }
+}
+</style>
+<template>
+  <view class="cart">
+    <load wx:if='{{!loading}}'></load>
+    <view wx:if='{{loading}}'>
+      <view class="cart-topHandle">
+        <view class="cart-topHandle-left" bindtap='showChooseAddress'>
+          地址：
+          <text>{{currentAddress}}</text>
+          <text wx:if="{{currentAddress == ''}}">请添加收货地址</text>
+        </view>
+        <view class="cart-topHandle-right" bindtap='showEdit'>
+          <text wx:if="{{!isEdit}}">编辑商品</text>
+          <text wx:if="{{isEdit}}">完成</text>
+        </view>
+      </view>
+      <!-- 商品列表 -->
+      <scroll-view scroll-y="true" style="width: 100%;height:82%;position:absolute; top:100rpx; left:0rpx;">
+        <view class="cart-goodsList">
+            <block wx:for='{{goodsList}}' wx:key='index'>
+              <view class="cart-goodsList-item">
+                <view class="cart-goodsList-item-img">
+                  <!-- <view class="cart-goodsList-item-img-tu"></view> -->
+                  <image class="cart-goodsList-item-img-tu" src="{{imgBaseUrl+item.goods_image}}"/>
+                  <view class="cart-goodsList-item-img-choose" bindtap='chooseGoods({{index}})'>
+                    <image src='../images/choose.png' wx:if="{{item.checkd == '0'}}"/>
+                    <image src='../images/choosed.png' wx:if="{{item.checkd == '1'}}" />
+                  </view>
+                </view>
+                <view class="cart-goodsList-item-desc">
+                  <view class="cart-goodsList-item-desc-about">
+                    <view class="cart-goodsList-item-desc-about-name">
+                      {{item.goods_name}}
+                    </view>
+                    <view class="cart-goodsList-item-desc-about-size">
+                      {{item.type}}
+                    </view>
+                    <view class="cart-goodsList-item-desc-about-color">
+                      【颜色：{{item.checkd_color}}】
+                    </view>
+                  </view>
+                  <view class="cart-goodsList-item-desc-goodAttr">
+                    <view class="cart-goodsList-item-desc-goodAttr-price">{{item.goods_price}}元</view>
+                    <view class="cart-goodsList-item-desc-goodAttr-num">
+                      <view bindtap='changeNum({{-1}},{{index}})' class="numBtn numBtn-left {{item.num <= 1 ? 'disabled' : ''}}">-</view>
+                      <input type="number" value='{{item.num}}' class="numTotal" bindinput='countNumberInput({{index}})'/>
+                      <view bindtap='changeNum({{1}},{{index}})' class="numBtn numBtn-right {{item.num >= item.sec_num ? 'disabled' : ''}}">+</view>
+                    </view>
+                  </view>
+                </view>
+              </view>
+            </block>
+          <view class="emptyTip" wx:if="{{goodsList.length == 0}}">购物车内空空如也~</view>
+        </view>
+      </scroll-view>
+      <!-- 选择地址 -->
+      <view class="cart-chooseAddress" wx:if="{{isShowChoose}}" bindtap='closeChoose'>
+        <view class="cart-chooseAddress-box">
+          <view class="cart-chooseAddress-box-title" catchtap='closeChoose'>
+            选择地址
+            <i-icon type="close" color="#999" />
+          </view>
+          <scroll-view scroll-y="true" style="width: 100%;height:280rpx;margin-bottom:20rpx;">
+            <view class="cart-chooseAddress-box-item">
+              <block wx:for="{{addressArr}}" wx:key='index'>
+                <view class="cart-chooseAddress-box-item-desc" catchtap='chooseThisAddress({{index}}, {{item}})'>
+                  <image src='../images/choose.png' wx:if='{{currentIndex === index ? false : true}}'/>
+                  <image src='../images/choosed.png' wx:if='{{currentIndex == index ? true : false}}' />
+                  {{item.all}}
+                </view>
+              </block>
+            </view>
+            <view class="emptyAddress" wx:if="{{addressArr.length == 0}}">请先添加收货地址</view>
+          </scroll-view>
+          <view class="cart-chooseAddress-box-add" catchtap='jumpToAddNew'>
+            新增收货地址
+          </view>
+        </view>
+      </view>
+      <!-- 底部结算 -->
+      <view class="cart-pay" wx:if="{{!isEdit}}">
+        <view class="cart-pay-total" wx:if="{{goodsList.length != 0}}">
+          <view class="cart-pay-total-chooseAll" bindtap='selectAllHandle({{selectStatusCount == goodsList.length ? 1 : 0}})'>
+            <image src='../images/choose.png' wx:if='{{selectStatusCount != goodsList.length}}'/>
+            <image src='../images/choosed.png' wx:if='{{selectStatusCount == goodsList.length}}' />
+            <text class="all">全选</text>
+          </view>
+          <view class="cart-pay-total-allPrice" wx:if="{{goodsList.length != 0}}">
+            <text class="all">总计:</text>
+            <text class="price" wx:if="{{totalPrice == 0 ? false : true}}">{{totalPrice}}元</text>
+            <text wx:if="{{totalPrice == 0 ? true : false}}">-</text>
+          </view>
+        </view>
+        <view class="cart-pay-toPay" wx:if="{{goodsList.length != 0}}">
+          <view class="cart-pay-toPay-btn {{selectStatusCount == 0 ? 'cant' : ''}}" bindtap='jumpToPay'>结算({{selectStatusCount}})件</view>
+        </view>
+      </view>
+      <!-- 编辑状态 -->
+      <view class="cart-edit" wx:if="{{isEdit}}">
+        <view class="cart-edit-chooseAll" bindtap='selectAllHandle({{selectStatusCount == goodsList.length ? 1 : 0}})' wx:if="{{goodsList.length != 0}}">
+          <image src='../images/choose.png' wx:if='{{selectStatusCount != goodsList.length}}'/>
+          <image src='../images/choosed.png' wx:if='{{selectStatusCount == goodsList.length}}' />
+          <text class="all">全选</text>
+        </view>
+        <view class="cart-edit-handle" wx:if="{{goodsList.length != 0}}">
+          <view class="cart-edit-handle-collect" bindtap='moveToCollect()'>移至收藏</view>
+          <view class="cart-edit-handle-delete" bindtap='showDelGood()'>删除</view>
+        </view>
+      </view>
+    </view>
+    <i-modal visible="{{ isShowDel }}" bindclick='delGood' actions="{{action}}">
+      <view class="delWord">确认将选中的商品删除吗</view>
+    </i-modal>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  import load from '../components/load'
+
+  import api from '../api/api'
+
+  import com from '../utils/common'
+
+  export default class Cart extends wepy.page {
+    onShow() {
+      this.session3rd = wepy.getStorageSync('session3rd')
+      this.imgBaseUrl = this.$parent.globalData.imgBaseUrl
+      setTimeout(() => {
+        this.loading = true
+        this.$apply()
+      }, 500)
+      // 获取我的购物车列表
+      this.getMyCart()
+
+      // 获取用户地址
+      this.doGetUserAddress(this.session3rd)
+      this.currentIndex = 0
+      this.isEdit = false
+    }
+    onHide() {
+      setTimeout(() => {
+        this.loading = false
+        this.$apply()
+      }, 500)
+    }
+    onLoad() {
+    }
+    config = {
+      navigationBarTitleText: '购物车',
+      'usingComponents': {
+        'i-modal': '../components/iView-components/modal/index',
+        'i-icon': '../components/iView-components/icon/index'
+      }
+    }
+    components = {
+      load
+    }
+    data = {
+      // imgBaseUrl: 'http://192.168.8.90',
+      imgBaseUrl: '',
+      session3rd: '',
+      loading: false,
+      addressArr: [],
+      choosead: [],
+      goodsList: [
+        {
+          // color: '白',
+          // goods_id: '22',
+          // goods_image: '',
+          // goods_name: '商品03',
+          // goods_price: '300',
+          // id: '5',
+          // num: '6',
+          // sec_num: '',
+          // type: '300ml',
+          // unit: '箱'
+        }
+      ],
+      isShowChoose: false,
+      // 总金额
+      totalPrice: 0,
+      // 被选中的商品数量
+      selectStatusCount: 0,
+      isEdit: false,
+      isShowDel: false,
+      action: [
+        {color: '#999', name: '取消'},
+        {color: '#ff4e4e', name: '确定'}
+      ],
+      code: '',
+      currentAddress: '',
+      currentIndex: 0,
+      chooseAll: false,
+      collectArr: [],
+      delArr: [],
+      // 被选中的收藏id
+      collectSelect: {},
+      // 被选中的商品购物车id
+      cartSelect: {}
+    }
+    methods = {
+      // 显示选择地址界面
+      showChooseAddress() {
+        this.isShowChoose = true
+      },
+      // 关闭选择地址界面
+      closeChoose() {
+        this.isShowChoose = false
+      },
+      // 跳转到新增地址
+      jumpToAddNew() {
+        wepy.navigateTo({ url: '/pages/newAddress' })
+      },
+      // 修改商品数量
+      changeNum(num, index) {
+        if (this.goodsList[index].sec_num) {
+          this.goodsList[index].num += num
+          if (this.goodsList[index].num < 1) {
+            this.goodsList[index].num = 1
+          } else if (this.goodsList[index].num > this.goodsList[index].sec_num) {
+            this.goodsList[index].num = this.goodsList[index].sec_num
+            wepy.showToast({
+              title: '商品数量不能大于库存剩余数量！',
+              icon: 'none',
+              duration: 2000,
+              mask: false
+            })
+          } else {
+            this.editMyCart(this.goodsList[index].num, this.goodsList[index].id, this.goodsList[index].checkd)
+          }
+        }
+        // 编辑购物车商品数量
+      },
+      // 商品数量输入事件
+      countNumberInput(index, e) {
+        let inputNum = parseInt(e.detail.value)
+        let oldNum = this.goodsList[index].num
+        // 判断是否恶意输入值
+        if (inputNum < 1 || isNaN(inputNum)) {
+          this.goodsList[index].num = oldNum
+          this.editMyCart(this.goodsList[index].num, this.goodsList[index].id, this.goodsList[index].checkd)
+          return oldNum
+        } else if (inputNum > this.goodsList[index].sec_num) {
+          this.goodsList[index].num = this.goodsList[index].sec_num
+          wepy.showToast({
+            title: '商品数量不能大于库存剩余数量！',
+            icon: 'none',
+            duration: 2000,
+            mask: false
+          })
+          this.editMyCart(this.goodsList[index].num, this.goodsList[index].id, this.goodsList[index].checkd)
+          return this.goodsList[index].sec_num
+        } else {
+          this.goodsList[index].num = inputNum
+          // return inputNum
+          this.editMyCart(this.goodsList[index].num, this.goodsList[index].id, this.goodsList[index].checkd)
+        }
+      },
+      // 选择商品
+      chooseGoods(index) {
+        let collectArr = []
+        let cartArr = []
+        this.collectSelect = []
+        this.selectArr = []
+        this.goodsList[index].checkd = !this.goodsList[index].checkd
+        this.goodsList.forEach((item, index) => {
+          if (item.checkd) {
+            collectArr.push(+item.goods_id)
+            cartArr.push(+item.id)
+            this.collectSelect = [...new Set(collectArr)]
+            this.cartSelect = [...new Set(cartArr)]
+          }
+        })
+        // 编辑购物车状态
+        this.editMyCart(this.goodsList[index].num, this.goodsList[index].id, +this.goodsList[index].checkd)
+      },
+      // 全选按钮
+      selectAllHandle(selectAllStatus) {
+        console.log(selectAllStatus)
+        let collectArr = []
+        let cartArr = []
+        this.collectSelect = []
+        this.selectArr = []
+        this.goodsList.forEach(item => {
+          item.checkd = !selectAllStatus
+          if (item.checkd) {
+            collectArr.push(+item.goods_id)
+            cartArr.push(+item.id)
+            this.collectSelect = [...new Set(collectArr)]
+            this.cartSelect = [...new Set(cartArr)]
+          }
+        })
+      },
+      // 进入编辑状态
+      showEdit() {
+        this.isEdit = !this.isEdit
+      },
+      // 显示删除商品对话框
+      showDelGood() {
+        if (this.selectStatusCount) {
+          this.isShowDel = true
+        } else {
+          wepy.showToast({
+            title: '请选择商品!',
+            icon: 'none',
+            duration: 2000,
+            mask: false
+          })
+        }
+      },
+      // 删除商品操作
+      delGood({ detail }) {
+        this.isShowDel = false
+        if (detail.index === 1) {
+          // 处理数据格式
+          let idArr = {}
+          this.cartSelect.forEach((item, index) => {
+            let key = 'idArr' + item
+            idArr[key] = item
+          })
+          // console.log(JSON.stringify(idArr), 'idArr')
+          api.delCart({
+            data: {
+              session3rd: this.session3rd,
+              idArr: JSON.stringify(idArr)
+            },
+            method: 'POST'
+          }).then(res => {
+            console.log(res, '删除购物车商品')
+            wepy.showToast({
+              title: res.message,
+              icon: 'none',
+              duration: 2000,
+              mask: false
+            })
+            if (res.code === '200') {
+              this.selectArr = []
+              this.getMyCart()
+            }
+          })
+        }
+        wepy.setStorageSync('addCartArr', this.goodsList)
+      },
+      // 移动到收藏夹
+      moveToCollect() {
+        if (this.selectStatusCount === 0) {
+          wepy.showToast({
+            title: '请选择商品!',
+            icon: 'none',
+            duration: 2000,
+            mask: false
+          })
+        } else {
+          // 处理数据格式
+          let idArr = {}
+          this.collectSelect.forEach((item, index) => {
+            let key = 'idArr' + item
+            idArr[key] = item
+          })
+          console.log(JSON.stringify(idArr), 'idArr')
+          api.addCollect({
+            data: {
+              session3rd: this.session3rd,
+              idArr: JSON.stringify(idArr)
+            },
+            method: 'POST'
+          }).then(res => {
+            console.log(res, '添加收藏')
+            if (res.code === '200') {
+              wepy.showToast({
+                title: '成功加入收藏夹，可到我的-我的收藏中查看！',
+                icon: 'none',
+                duration: 2000,
+                mask: false
+              })
+            } else {
+              wepy.showToast({
+                title: res.message,
+                icon: 'none',
+                duration: 2000,
+                mask: false
+              })
+            }
+          })
+          // this.collectArr = []
+          // 遍历商品看谁被选中
+          // this.goodsList.forEach((item, index) => {
+          //   if (item.checkd === 1) {
+          //     this.collectArr.push(item)
+          //   }
+          // })
+          // wepy.setStorageSync('collectArr', this.collectArr)
+          // wepy.showToast({
+          //   title: '成功加入收藏夹，可到我的-我的收藏中查看！',
+          //   icon: 'none',
+          //   duration: 2000,
+          //   mask: false
+          // })
+        }
+      },
+      // 选择该地址作为收货地址(不设置默认地址)
+      chooseThisAddress(index, item) {
+        this.currentIndex = index
+        item.all = this.addressArr[index].all
+        wepy.setStorageSync('payAddress', item)
+        // 左上角地址修改
+        this.outOfTheSameName(this.addressArr, index)
+      },
+      // 结算订单
+      jumpToPay() {
+        if (this.selectStatusCount) {
+          wepy.navigateTo({ url: `/pages/pay?code=${this.code}&name=${this.currentName}&phone=${this.currentPhone}&addr=${this.currentAddressDesc}` })
+        } else {
+          wepy.showToast({
+            title: '请选择商品!',
+            icon: 'none',
+            duration: 2000,
+            mask: false
+          })
+        }
+      }
+    }
+    // 获取用户地址
+    doGetUserAddress(session3rd, page = 1) {
+      api.getUserAddress({
+        data: {
+          session3rd: session3rd,
+          page: page
+        },
+        method: 'POST'
+      }).then(res => {
+        console.log(res, '获取地址')
+        if (res.code === '200') {
+          this.addressArr = res.extraData.info
+          this.addressArr.reverse()
+
+          // 底部地址显示
+          for (let i = 0; i < this.addressArr.length; i++) {
+            com.getTheDescAddress(this.addressArr, i)
+          }
+
+           // 左上角地址显示
+          if (this.addressArr[0]) {
+            this.outOfTheSameName(this.addressArr, 0)
+            wepy.setStorageSync('payAddress', this.addressArr[0])
+          } else {
+            this.currentAddress = '请选择收货地址'
+          }
+          this.$apply()
+        }
+      })
+    }
+    // 去除省市同名情况
+    outOfTheSameName(addressArr, index) {
+      if (addressArr[index].province !== addressArr[index].city && this.addressArr[index].city !== '县') {
+        this.currentAddress = addressArr[index].province + addressArr[index].city
+      } else {
+        this.currentAddress = addressArr[index].province + addressArr[index].area
+      }
+    }
+    // 编辑购物车
+    editMyCart(num, id, checkd) {
+      api.editCart({
+        data: {
+          session3rd: this.session3rd,
+          num: num,
+          id: id,
+          checkd: +checkd
+        },
+        method: 'POST'
+      }).then(res => {
+        console.log(res, '编辑购物车商品状态')
+      })
+    }
+    // 获取我的购物车
+    getMyCart() {
+      api.getCart({
+        data: {
+          session3rd: this.session3rd
+        },
+        method: 'POST'
+      }).then(res => {
+        console.log(res, '购物车列表')
+        if (res.code === '200') {
+          this.goodsList = res.extraData.info
+          // 将字符串数字转成数字
+          let collectArr = []
+          let cartArr = []
+          for (let i = 0; i < this.goodsList.length; i++) {
+            this.goodsList[i].num = +this.goodsList[i].num
+            this.goodsList[i].sec_num = +this.goodsList[i].sec_num
+            this.goodsList[i].checkd = +this.goodsList[i].checkd
+            if (this.goodsList[i].checkd) {
+              collectArr.push(+this.goodsList[i].goods_id)
+              cartArr.push(+this.goodsList[i].id)
+              this.collectSelect = [...new Set(collectArr)]
+              this.cartSelect = [...new Set(cartArr)]
+            }
+          }
+          this.$apply()
+        }
+      })
+    }
+    computed = {
+      // 计算总金额、总件数
+      goodsList() {
+        this.selectStatusCount = 0
+        this.totalPrice = 0
+        // 判断商品是否被选中
+        if (!this.goodsList) {
+          this.goodsList = []
+        }
+        this.goodsList.forEach(item => {
+          if (item.checkd) {
+            this.selectStatusCount++
+            if (this.selectStatusCount === this.goodsList.length && this.selectStatusCount !== 0) {
+              this.chooseAll = true
+            }
+            // 总金额+=选中的商品数*商品金额
+            this.totalPrice += item.num * item.goods_price
+          }
+        })
+        return this.goodsList
+      }
+      // 地址变更
+    }
+  }
+</script>

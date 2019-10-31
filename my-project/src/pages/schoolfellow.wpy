@@ -1,0 +1,98 @@
+<template>
+    <view class="schoolfellow">
+      <view class="schoolfellow-title">
+        知名校友
+      </view>
+      <view class="schoolfellow-content" selectable>
+        <block wx:for='{{schoolFellow}}' wx:key='index'>
+          <view class="famous">
+            <view class="famous-img">
+              <image src='http://img.baokaodaxue.com{{item.portrait}}' />
+            </view>
+            <view class="famous-introduction">
+              <view class="famous-introduction-name">{{item.name}}</view>
+              <view class="famous-introduction-content">{{item.intr}}</view>
+            </view>
+          </view>
+        </block>
+      </view>
+    </view>
+</template>
+<script>
+import wepy from 'wepy'
+
+import api from '../api/api'
+
+export default class Schoolfellow extends wepy.page {
+  onLoad(options) {
+    console.log(options)
+    this.pageTitle = options.pageTitle
+    this.cid = options.cid
+    wepy.setNavigationBarTitle({ title: this.pageTitle })
+
+    api.getSchoolInfoJJzmxy({
+      data: {cid: this.cid}
+    }).then(res => {
+      console.log(res, '知名校友')
+      if (res.code === '200') {
+        this.schoolFellow = res.extraData.xiaoyou
+        this.$apply()
+      }
+    })
+  }
+  config = {
+    navigationBarBackgroundColor: '#fff',
+    navigationBarTextStyle: 'black'
+  }
+  data = {
+    pageTitle: '',
+    cid: '',
+    schoolFellow: []
+  }
+}
+</script>
+<style lang="less" scoped>
+.schoolfellow{
+  background-color: #f2f5f7;
+  &-title{
+    background-color: #fff;
+    height: 90rpx;
+    line-height: 90rpx;
+    width: 750rpx;
+    text-align: center;
+    font-size: 28rpx;
+    margin-bottom: 14rpx;
+    border-top: 1rpx solid #dcdcdc;
+  }
+  &-content{
+    background-color: #fff;
+    .famous{
+      padding:20rpx 10rpx 20rpx 20rpx;
+      display: flex;
+      border-bottom: 1rpx solid #999;
+      &-img{
+        width: 180rpx;
+        image{
+          width: 180rpx;
+          height: 180rpx;
+        }
+      }
+      &-introduction{
+        padding: 0 20rpx;
+        &-name{
+          font-size: 30rpx;
+          font-weight: 600;
+          margin-bottom: 15rpx;
+          color: #333;
+        }
+        &-content{
+          font-size: 26rpx;
+          line-height: 45rpx;
+          text-indent: 60rpx;
+          color: #999;
+        }
+      }
+    }
+  }
+}
+</style>

@@ -1,0 +1,756 @@
+<style lang="less">
+.invoice{
+  background-color: #f5f5f5;
+  // height: 100vh;
+  overflow: hidden;
+  &-title{
+    height: 92rpx;
+    line-height: 92rpx;
+    font-size: 28rpx;
+    color: #333;
+    padding: 0 30rpx;
+    display: flex;
+    justify-content: space-between;
+    background-color: #fff;
+    margin-top: 20rpx;
+    .type{
+      color: #1c80b2;
+    }
+  }
+  &-type{
+    margin-bottom: 10px;
+    .type{
+      background-color: #fff;
+      font-size: 28rpx;
+      height: 110rpx;
+      line-height: 110rpx;
+      padding-left: 90rpx;
+      border-top: 1rpx solid #dcdcdc;
+      position: relative;
+      display: flex;
+      view{
+        margin-right: 20rpx;
+      }
+      image{
+        width: 40rpx;
+        height: 40rpx;
+        position: absolute;
+        top: 35rpx;
+        left: 25rpx;
+      }
+      input{
+        width: 490rpx;
+        padding-left: 20rpx;
+        height: 60rpx;
+        background-color: #f5f5f5;
+        border-radius: 10rpx;
+        margin-top: 25rpx;
+        &:after{
+          border: 0;
+        }
+      }
+    }
+  }
+  &-head{
+    background-color: #fff;
+    font-size: 28rpx;
+    color: #333;
+    margin-bottom: 20rpx;
+    image{
+      width: 40rpx;
+      height: 40rpx;
+      position: absolute;
+      top: 35rpx;
+      left: 25rpx;
+    }
+    &-title{
+      height: 92rpx;
+      line-height: 92rpx;
+      padding-left: 30rpx;
+      border-bottom: 1rpx solid #dcdcdc;
+    }
+    &-company{
+      padding: 10rpx 0 10rpx 90rpx;
+      position: relative;
+      .name,
+      .number{
+        height: 90rpx;
+        line-height: 90rpx;
+        display: flex;
+        view{
+          margin-right: 20rpx;
+        }
+        input{
+          width: 540rpx;
+          padding-left: 20rpx;
+          height: 60rpx;
+          background-color: #f5f5f5;
+          border-radius: 10rpx;
+          margin-top: 15rpx;
+          &:after{
+            border: 0;
+          }
+        }
+      }
+    }
+    &-personal{
+      position: relative;
+      width: 750rpx;
+      height: 110rpx;
+      line-height: 110rpx;
+      display: flex;
+      padding-left: 90rpx;
+      border-top: 1rpx solid #dcdcdc;
+      view{
+        margin-right: 20rpx;
+      }
+      input{
+        margin-top: 25rpx;
+        width: 540rpx;
+        padding-left: 20rpx;
+        height: 60rpx;
+        background-color: #f5f5f5;
+        border-radius: 10rpx;
+        &:after{
+          border: 0;
+        }
+      }
+    }
+  }
+  &-choose{
+    font-size: 28rpx;
+    background-color: #fff;
+    margin-bottom: 20rpx;
+    &-title{
+      height: 92rpx;
+      line-height: 92rpx;
+      padding-left: 30rpx;
+    }
+    &-content{
+      &-item{
+        height: 110rpx;
+        line-height: 110rpx;
+        padding-left: 90rpx;
+        border-top: 1rpx solid #dcdcdc;
+        position: relative;
+        image{
+          width: 40rpx;
+          height: 40rpx;
+          position: absolute;
+          top: 35rpx;
+          left: 25rpx;
+        }
+      }
+    }
+  }
+  &-tip{
+    font-size: 22rpx;
+    height: 100rpx;
+    line-height: 100rpx;
+    color: #aaa;
+    background-color: #fff;
+    padding-left: 20rpx;
+    margin-bottom: 20rpx;
+  }
+  &-btn{
+    height: 90rpx;
+    width: 750rpx;
+    background-color: #1c80b2;
+    text-align: center;
+    font-size: 30rpx;
+    color: #fff;
+    line-height: 90rpx;
+    // position: absolute;
+    // bottom: 0;
+    // left: 0;
+  }
+}
+</style>
+<template>
+  <view class="invoice">
+    <!-- <view class="invoice-title">
+      <view class="name">发票类型 (请选择普通发票或电子发票)</view>
+    </view> -->
+    <view class="invoice-choose">
+      <view class="invoice-choose-title">
+        发票内容
+        <text>(若需要开发票请必须勾选商品明细)</text>
+      </view>
+      <view class="invoice-choose-content">
+        <view class="invoice-choose-content-item" bindtap='contentHandle({{0}})'>
+          <image src='../images/choose.png' wx:if='{{contentChoose}}'/>
+          <image src='../images/choosed.png' wx:if='{{!contentChoose}}' />
+          不开发票
+        </view>
+        <view class="invoice-choose-content-item" bindtap='contentHandle({{1}})'>
+          <image src='../images/choose.png' wx:if='{{!contentChoose}}'/>
+          <image src='../images/choosed.png' wx:if='{{contentChoose}}' />
+          商品明细
+        </view>
+      </view>
+    </view>
+    <view wx:if='{{contentChoose}}'>
+      <view class="invoice-title">
+        <view class="name">发票类型 (请选择普通发票或电子发票)</view>
+      </view>
+      <view class="invoice-type">
+        <view class="type" bindtap='chooseInvoiceType({{0}})'>
+          <image src='../images/choose.png' wx:if='{{!invoiceType[0]}}'/>
+          <image src='../images/choosed.png' wx:if='{{invoiceType[0]}}'/>
+          <view>普通发票</view>
+        </view>
+        <view class="type" bindtap='chooseInvoiceType({{1}})'>
+          <image src='../images/choose.png' wx:if='{{!invoiceType[1]}}'/>
+          <image src='../images/choosed.png' wx:if='{{invoiceType[1]}}'/>
+          <view>电子发票</view>
+          <input type="text" placeholder='请填写您的邮箱' value='{{email}}' bindblur='checkEmail' bindinput='getEmail'/>
+        </view>
+      </view>
+      <view class="invoice-head">
+        <view class="invoice-head-title">
+          发票抬头
+        </view>
+        <view class="invoice-head-company" bindtap='chooseInvoiceHead({{0}})'>
+          <view class="name">
+            <view>公司</view>
+            <input type="text" placeholder='请填写公司名称' value='{{comName}}' bindinput='getInputVal({{1}})'/>
+          </view>
+          <view class="number">
+            <view>税号</view>
+            <input type="text" placeholder='请填写公司税号' value='{{comNum}}' bindinput='getInputVal({{2}})'/>
+          </view>
+          <image src='../images/choose.png' wx:if='{{!isChoose[0]}}'/>
+          <image src='../images/choosed.png' wx:if='{{isChoose[0]}}' />
+        </view>
+        <view class="invoice-head-personal" bindtap='chooseInvoiceHead({{1}})'>
+          <view>个人</view>
+          <input type="text" placeholder='请填写个人姓名' value='{{perName}}' bindinput='getInputVal({{3}})'/>
+          <image src='../images/choose.png' wx:if='{{!isChoose[1]}}'/>
+          <image src='../images/choosed.png' wx:if='{{isChoose[1]}}' />
+        </view>
+      </view>
+      <view class="invoice-tip">如需开具增值税专用发票，请联系责任业务员或者客服QQ：1372840923</view>
+      <view class="invoice-btn" bindtap='submitInvoiceInfo' wx:if="{{type != 'edit'}}">
+        确定
+      </view>
+      <view class="invoice-btn" wx:if="{{type == 'edit'}}" bindtap='editInvoice'>
+        保存
+      </view>
+    </view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import api from '../api/api'
+
+  export default class Invoice extends wepy.page {
+    onLoad(opt) {
+      console.log(opt, 'opt')
+      this.type = opt.type
+      if (opt.type === 'edit') {
+        this.email = opt.email
+        this.id = opt.id
+        this.invoice_title_type = opt.invoice_title_type
+        this.invoice_type = opt.invoice_type
+        // 判断发票抬头
+        if (opt.invoice_title_type === '1') {
+          this.comName = opt.invoice_title
+          this.comNum = opt.invoice_num
+          this.isChoose = [true, false]
+        } else if (opt.invoice_title_type === '2') {
+          this.perName = opt.invoice_title
+          this.isChoose = [false, true]
+        }
+        // 判断发票类型
+        if (opt.invoice_type === '1') {
+          this.invoiceType = [true, false]
+        } else if (opt.invoice_type === '2') {
+          this.invoiceType = [false, true]
+        }
+      }
+    }
+    onShow() {
+      this.session3rd = wepy.getStorageSync('session3rd')
+      this.contentChoose = wepy.getStorageSync('contentChoose')
+      if (this.type !== 'edit') {
+        this.chooseIndex = wepy.getStorageSync('chooseIndex')
+        this.isChoose = [false, false]
+        this.isChoose[this.chooseIndex] = true
+      }
+    }
+    config = {
+      navigationBarTitleText: '发票信息'
+    }
+    data = {
+      type: '',
+      session3rd: '',
+      contentChoose: false,
+      isChoose: [false, false],
+      invoiceType: [true, false],
+      comName: '',
+      comNum: '',
+      perName: '',
+      email: '',
+      chooseIndex: '',
+      // 发票类型
+      invoice_type: '',
+      // 发票抬头类型
+      invoice_title_type: '',
+      // 发票抬头
+      invoice_title: '',
+      // 税号
+      invoice_num: '',
+      // 编辑时发票的id
+      id: ''
+    }
+    methods = {
+      // 选择发票类型
+      chooseInvoiceType(index) {
+        this.invoiceType = [false, false]
+        this.invoiceType[index] = !this.invoiceType[index]
+        this.invoice_type = index + 1
+        if (this.invoiceType[0]) {
+          this.email = ''
+        }
+      },
+      // 选择发票抬头类型
+      chooseInvoiceHead(index) {
+        this.invoice_title_type = index + 1
+        this.chooseIndex = index
+        let invoiceType = '个人'
+        this.isChoose = [false, false]
+        this.isChoose[this.chooseIndex] = true
+        if (this.isChoose[0]) {
+          invoiceType = '公司'
+        }
+        wepy.setStorageSync('invoiceType', invoiceType)
+        wepy.setStorageSync('chooseIndex', index)
+      },
+      // 获取输入值
+      getInputVal(index, e) {
+        if (this.isChoose[0]) {
+          this.perName = ''
+        }
+        if (this.isChoose[1]) {
+          this.comName = ''
+          this.comNum = ''
+        }
+        if (index === 1) {
+          this.comName = e.detail.value
+        } else if (index === 2) {
+          this.comNum = e.detail.value
+        } else if (index === 3) {
+          this.perName = e.detail.value
+        }
+      },
+      // 选择发票内容
+      contentHandle(index) {
+        let invoiceContent = '(不开发票)'
+        if (index === 0) {
+          this.contentChoose = false
+        } else if (index === 1) {
+          invoiceContent = '(商品明细)'
+          this.contentChoose = true
+        }
+        wepy.setStorageSync('contentChoose', this.contentChoose)
+        wepy.setStorageSync('invoiceContent', invoiceContent)
+      },
+      // 新增发票信息
+      submitInvoiceInfo() {
+        // 判断发票类型
+        if (this.invoiceType[1]) {
+          // 电子发票
+          if (!this.email) {
+            wepy.showToast({
+              title: '请填写邮箱',
+              icon: 'none',
+              duration: 2000,
+              mask: false
+            })
+          } else {
+            let Reg = /^[a-zA-Z0-9_.-]+@[a-zA-Z0-9]+(\.[a-zA-Z0-9-]+)*\.[a-zA-Z0-9]{2,6}$/
+            if (!Reg.test(this.email)) {
+              wepy.showToast({
+                title: '请输入正确的邮箱格式',
+                icon: 'none',
+                duration: 2000,
+                mask: false
+              })
+            } else {
+              // 抬头判断
+              if (this.isChoose[0]) {
+                let title = ''
+                if (!this.comName && !this.comNum) {
+                  title = '请填写公司名称和税号'
+                } else if (!this.comName) {
+                  title = '请填写公司名称'
+                } else if (!this.comNum) {
+                  title = '请填写公司税号'
+                } else {
+                  // 提交发票信息--发请求
+                  // 获取抬头
+                  if (this.invoice_title_type === 1) {
+                    this.invoice_title = this.comName
+                    this.invoice_num = this.comNum
+                  } else if (this.invoice_title_type === 2) {
+                    this.invoice_title = this.perName
+                  }
+
+                  api.addInvoice({
+                    data: {
+                      session3rd: this.session3rd,
+                      invoice_type: this.invoice_type,
+                      invoice_title_type: this.invoice_title_type,
+                      invoice_title: this.invoice_title,
+                      invoice_num: this.invoice_num,
+                      email: this.email
+                    },
+                    method: 'POST'
+                  }).then(res => {
+                    console.log(res, '新增发票')
+                    wepy.showToast({
+                      title: res.message,
+                      icon: 'none',
+                      duration: 2000,
+                      mask: false
+                    })
+                    if (res.code === '200') {
+                      setTimeout(() => {
+                        wepy.navigateBack({
+                          delta: 1
+                        })
+                      }, 2000)
+                    }
+                  })
+                }
+                wepy.showToast({
+                  title: title,
+                  icon: 'none',
+                  duration: 2000,
+                  mask: false
+                })
+              } else if (this.isChoose[1]) {
+                if (!this.perName) {
+                  wepy.showToast({
+                    title: '请填写个人姓名',
+                    icon: 'none',
+                    duration: 2000,
+                    mask: false
+                  })
+                } else {
+                  // 提交发票信息--发请求
+                  // 获取抬头
+                  if (this.invoice_title_type === 1) {
+                    this.invoice_title = this.comName
+                    this.invoice_num = this.comNum
+                  } else if (this.invoice_title_type === 2) {
+                    this.invoice_title = this.perName
+                  }
+
+                  api.addInvoice({
+                    data: {
+                      session3rd: this.session3rd,
+                      invoice_type: this.invoice_type,
+                      invoice_title_type: this.invoice_title_type,
+                      invoice_title: this.invoice_title,
+                      invoice_num: this.invoice_num,
+                      email: this.email
+                    },
+                    method: 'POST'
+                  }).then(res => {
+                    console.log(res, '新增发票')
+                    wepy.showToast({
+                      title: res.message,
+                      icon: 'none',
+                      duration: 2000,
+                      mask: false
+                    })
+                    if (res.code === '200') {
+                      setTimeout(() => {
+                        wepy.navigateBack({
+                          delta: 1
+                        })
+                      }, 2000)
+                    }
+                  })
+                }
+              }
+            }
+          }
+        } else if (this.invoiceType[0]) {
+          // 普通发票
+          if (this.isChoose[0]) {
+            let title = ''
+            if (!this.comName && !this.comNum) {
+              title = '请填写公司名称和税号'
+            } else if (!this.comName) {
+              title = '请填写公司名称'
+            } else if (!this.comNum) {
+              title = '请填写公司税号'
+            } else {
+              // 提交发票信息--发请求
+              // 获取抬头
+              if (this.invoice_title_type === 1) {
+                this.invoice_title = this.comName
+                this.invoice_num = this.comNum
+              } else if (this.invoice_title_type === 2) {
+                this.invoice_title = this.perName
+              }
+
+              api.addInvoice({
+                data: {
+                  session3rd: this.session3rd,
+                  invoice_type: this.invoice_type,
+                  invoice_title_type: this.invoice_title_type,
+                  invoice_title: this.invoice_title,
+                  invoice_num: this.invoice_num,
+                  email: this.email
+                },
+                method: 'POST'
+              }).then(res => {
+                console.log(res, '新增发票')
+                wepy.showToast({
+                  title: res.message,
+                  icon: 'none',
+                  duration: 2000,
+                  mask: false
+                })
+                if (res.code === '200') {
+                  wepy.navigateBack({
+                    delta: 1
+                  })
+                }
+              })
+            }
+            wepy.showToast({
+              title: title,
+              icon: 'none',
+              duration: 2000,
+              mask: false
+            })
+          } else if (this.isChoose[1]) {
+            if (!this.perName) {
+              wepy.showToast({
+                title: '请填写个人姓名',
+                icon: 'none',
+                duration: 2000,
+                mask: false
+              })
+            } else {
+              // 提交发票信息--发请求
+              // 获取抬头
+              if (this.invoice_title_type === 1) {
+                this.invoice_title = this.comName
+                this.invoice_num = this.comNum
+              } else if (this.invoice_title_type === 2) {
+                this.invoice_title = this.perName
+              }
+
+              api.addInvoice({
+                data: {
+                  session3rd: this.session3rd,
+                  invoice_type: this.invoice_type,
+                  invoice_title_type: this.invoice_title_type,
+                  invoice_title: this.invoice_title,
+                  invoice_num: this.invoice_num,
+                  email: this.email
+                },
+                method: 'POST'
+              }).then(res => {
+                console.log(res, '新增发票')
+                wepy.showToast({
+                  title: res.message,
+                  icon: 'none',
+                  duration: 2000,
+                  mask: false
+                })
+                if (res.code === '200') {
+                  wepy.navigateBack({
+                    delta: 1
+                  })
+                }
+              })
+            }
+          }
+        }
+      },
+      // 修改发票信息
+      editInvoice() {
+        // 判断发票类型
+        if (this.invoiceType[1]) {
+        // 电子发票
+          if (!this.email) {
+            wepy.showToast({
+              title: '请填写邮箱',
+              icon: 'none',
+              duration: 2000,
+              mask: false
+            })
+          } else {
+            let Reg = /^[a-zA-Z0-9_.-]+@[a-zA-Z0-9]+(\.[a-zA-Z0-9-]+)*\.[a-zA-Z0-9]{2,6}$/
+            if (!Reg.test(this.email)) {
+              wepy.showToast({
+                title: '请输入正确的邮箱格式',
+                icon: 'none',
+                duration: 2000,
+                mask: false
+              })
+            } else {
+              // 抬头判断
+              if (this.isChoose[0]) {
+                let title = ''
+                if (!this.comName && !this.comNum) {
+                  title = '请填写公司名称和税号'
+                } else if (!this.comName) {
+                  title = '请填写公司名称'
+                } else if (!this.comNum) {
+                  title = '请填写公司税号'
+                } else {
+                  // 获取抬头
+                  if (+this.invoice_title_type === 1) {
+                    this.invoice_title = this.comName
+                    this.invoice_num = this.comNum
+                  } else if (+this.invoice_title_type === 2) {
+                    this.invoice_title = this.perName
+                  }
+                  api.editInvoice({
+                    data: {
+                      session3rd: this.session3rd,
+                      invoice_type: this.invoice_type,
+                      invoice_title_type: this.invoice_title_type,
+                      invoice_title: this.invoice_title,
+                      invoice_num: this.invoice_num,
+                      email: this.email,
+                      id: this.id
+                    },
+                    method: 'POST'
+                  }).then(res => {
+                    console.log(res, '编辑发票')
+                    wepy.showToast({
+                      title: res.message,
+                      icon: 'none',
+                      duration: 2000,
+                      mask: false
+                    })
+                    if (res.code === '200') {
+                      setTimeout(() => {
+                        wepy.navigateBack({
+                          delta: 1
+                        })
+                      }, 2000)
+                    }
+                  })
+                }
+                wepy.showToast({
+                  title: title,
+                  icon: 'none',
+                  duration: 2000,
+                  mask: false
+                })
+              } else if (this.isChoose[1]) {
+                if (!this.perName) {
+                  wepy.showToast({
+                    title: '请填写个人姓名',
+                    icon: 'none',
+                    duration: 2000,
+                    mask: false
+                  })
+                } else {
+                  // 获取抬头
+                  if (+this.invoice_title_type === 1) {
+                    this.invoice_title = this.comName
+                    this.invoice_num = this.comNum
+                  } else if (+this.invoice_title_type === 2) {
+                    this.invoice_title = this.perName
+                  }
+                  api.editInvoice({
+                    data: {
+                      session3rd: this.session3rd,
+                      invoice_type: this.invoice_type,
+                      invoice_title_type: this.invoice_title_type,
+                      invoice_title: this.invoice_title,
+                      invoice_num: this.invoice_num,
+                      email: this.email,
+                      id: this.id
+                    },
+                    method: 'POST'
+                  }).then(res => {
+                    console.log(res, '编辑发票')
+                    wepy.showToast({
+                      title: res.message,
+                      icon: 'none',
+                      duration: 2000,
+                      mask: false
+                    })
+                    if (res.code === '200') {
+                      setTimeout(() => {
+                        wepy.navigateBack({
+                          delta: 1
+                        })
+                      }, 2000)
+                    }
+                  })
+                }
+              }
+            }
+          }
+        }
+      },
+      // 修改发票信息
+      editInvoice123() {
+        // 获取抬头
+        if (+this.invoice_title_type === 1) {
+          this.invoice_title = this.comName
+          this.invoice_num = this.comNum
+        } else if (+this.invoice_title_type === 2) {
+          this.invoice_title = this.perName
+        }
+        api.editInvoice({
+          data: {
+            session3rd: this.session3rd,
+            invoice_type: this.invoice_type,
+            invoice_title_type: this.invoice_title_type,
+            invoice_title: this.invoice_title,
+            invoice_num: this.invoice_num,
+            email: this.email,
+            id: this.id
+          },
+          method: 'POST'
+        }).then(res => {
+          console.log(res, '编辑发票')
+          wepy.showToast({
+            title: res.message,
+            icon: 'none',
+            duration: 2000,
+            mask: false
+          })
+          if (res.code === '200') {
+            wepy.navigateBack({
+              delta: 1
+            })
+          }
+        })
+      },
+      // 检查邮箱格式
+      checkEmail(e) {
+        if (this.invoiceType[1]) {
+          let Reg = /^[a-zA-Z0-9_.-]+@[a-zA-Z0-9]+(\.[a-zA-Z0-9-]+)*\.[a-zA-Z0-9]{2,6}$/
+          if (Reg.test(e.detail.value)) {
+            this.email = e.detail.value
+          } else {
+            // wepy.showToast({
+            //   title: '请输入正确的邮箱格式',
+            //   icon: 'none',
+            //   duration: 2000,
+            //   mask: false
+            // })
+          }
+        }
+      },
+      getEmail(e) {
+        this.email = e.detail.value
+      }
+    }
+  }
+</script>

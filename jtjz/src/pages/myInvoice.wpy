@@ -1,0 +1,277 @@
+<style lang="less">
+.myInvoice{
+  height: 100vh;
+  box-sizing: border-box;
+  background-color: #f5f5f5;
+  .add{
+    background-color: #19a88f;
+    padding: 0;
+    line-height: 80rpx;
+    width: 600rpx;
+    height: 80rpx;
+    position: fixed;
+    bottom: 50rpx;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 28rpx;
+    color: #fff;
+    text-align: center;
+    border-radius: 5px;
+  }
+  .invoiceList{
+    padding: 20rpx;
+    .item{
+      border-bottom: 1rpx solid #dcdcdc;
+      background-color: #fff;
+      font-size: 28rpx;
+      box-sizing: border-box;
+      padding: 20rpx;
+      margin-bottom: 20rpx;
+      .item-content,
+      .item-type,
+      .item-head{
+        // border-bottom: 1rpx solid #dcdcdc;
+        // margin-bottom: 20rpx;
+        .content{
+          padding-left: 30rpx;
+        }
+      }
+      .item-handle{
+        height: 50rpx;
+        line-height: 50rpx;
+        margin-top: 20rpx;
+        display: flex;
+        justify-content: space-between;
+        .del,
+        .edit{
+          width: 100rpx;
+          height: 50rpx;
+          line-height: 50rpx;
+          // background-color: #19a88f;
+          text-align: center;
+          color: #19a88f;
+          flex: 1;
+        }
+        .use{
+          width: 450rpx;
+          .icon-selected{
+          width: 24rpx;
+          height: 24rpx;
+          margin-right: 10rpx;
+        }
+        }
+      }
+    }
+  }
+  .emptyTip{
+    text-align: center;
+    height: 100rpx;
+    line-height: 100rpx;
+    width: 100%;
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    font-size: 28rpx;
+    color: #999;
+  }
+  .tip{
+    margin: 0 20rpx;
+    font-size: 28rpx;
+    text-align: center;
+    color: #999;
+    background-color: #fff;
+  }
+  .noInvoice{
+    height: 80rpx;
+    line-height: 80rpx;
+    background-color: #fff;
+    font-size: 28rpx;
+    color: #999;
+    margin-bottom: 10rpx;
+    padding-left: 20rpx;
+    image{
+      width: 24rpx;
+      height: 24rpx;
+      margin-right: 20rpx;
+    }
+  }
+}
+</style>
+<template>
+<view class="myInvoice">
+  <scroll-view scroll-y="true" style="width: 100%;height:86%;position:absolute; top:0rpx; left:0rpx;">
+    <view class="invoiceList">
+      <view class="noInvoice" bindtap='noInvoice' wx:if="{{type == 'pay'}}">
+        <image src='../images/no_check.png' class="icon-selected" wx:if="{{!isUseInvoice}}"/>
+        <image src='../images/checked.png' class="icon-selected" wx:if="{{isUseInvoice}}"/>
+        不开发票
+      </view>
+      <view class="item" wx:for="{{invoiceList}}" wx:key="index" bindtap="chooseInvoice({{item}},{{index}})">
+        <view class="item-content">
+          <view class="title">发票内容：</view>
+          <view class="content">商品明细</view>
+        </view>
+        <view class="item-type">
+          <view class="title">发票类型：</view>
+          <view class="content" wx:if="{{item.invoice_type == '2'}}">
+            电子发票
+            <view class="email">邮箱：{{item.email}}</view>
+          </view>
+          <view class="content" wx:if="{{item.invoice_type == '1'}}">普通发票</view>
+        </view>
+        <view class="item-head">
+          <view class="title">发票抬头：</view>
+          <view class="content" wx:if="{{item.invoice_title_type == '1'}}">
+            <view class="company">公司名称：{{item.invoice_title}}</view>
+            <view class="companyNum">公司税号：{{item.invoice_num}}</view>
+          </view>
+          <view class="content" wx:if="{{item.invoice_title_type == '2'}}">
+            <view class="name">个人姓名：{{item.invoice_title}}</view>
+          </view>
+        </view>
+        <view class="item-handle">
+          <view class="use" wx:if="{{type == 'pay'}}">
+            <image src='../images/no_check.png' class="icon-selected" wx:if="{{!item.checked}}" />
+            <image src='../images/checked.png' wx:if="{{item.checked}}" class="icon-selected"/>
+            使用此发票信息
+          </view>
+          <view class="del" bindtap="showDelModal({{item.id}})">删除</view>
+          <view class="edit" bindtap="jumpToEdit({{item}})">编辑</view>
+        </view>
+      </view>
+    </view>
+    <view class="emptyTip" wx:if='{{invoiceList.length == 0}}'>
+      请先添加发票信息
+    </view>
+  </scroll-view>
+  <view class="add" bindtap="addNewInvoice">新增发票信息</view>
+
+  <!-- 删除对话框 -->
+  <i-modal visible="{{ isShowDel }}" bindclick='doDelHandle' actions="{{action}}">
+    <view>确定要删除该发票信息吗</view>
+  </i-modal>
+</view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import api from '../api/api'
+
+  export default class MyInvoice extends wepy.page {
+    onLoad(opt) {
+      this.type = opt.type
+    }
+    onShow() {
+      this.session3rd = wepy.getStorageSync('session3rd')
+      this.getInvoiceList()
+    }
+    config = {
+      navigationBarTitleText: '我的发票',
+      'usingComponents': {
+        'i-modal': '../components/iView-components/modal/index'
+      }
+    }
+    data = {
+      invoiceList: [
+        {
+          invoice_type: '1',
+          invoice_title_type: '1',
+          invoice_title: '集泰公司',
+          invoice_num: '012547854215455148',
+          email: '123456789@163.com'
+        }
+      ],
+      type: '',
+      session3rd: '',
+      isShowDel: false,
+      action: [
+        {color: '#999', name: '取消'},
+        {color: '#13a78a', name: '确定'}
+      ],
+      isUseInvoice: false
+    }
+    methods = {
+      // 跳转新增发票信息
+      addNewInvoice() {
+        wepy.navigateTo({ url: '/pages/invoice' })
+      },
+      // 选择该发票
+      chooseInvoice(item, index) {
+        // 如果是从支付页面进入
+        if (this.type === 'pay') {
+          this.isUseInvoice = false
+          wepy.setStorageSync('invoiceInfo', item)
+          // wepy.navigateBack({
+          //   delta: 1
+          // })
+          for (let i = 0; i < this.invoiceList.length; i++) {
+            this.invoiceList[i].checked = false
+          }
+          this.invoiceList[index].checked = !this.invoiceList[index].checked
+        }
+      },
+      // 不开发票
+      noInvoice() {
+        if (this.type === 'pay') {
+          this.isUseInvoice = true
+          for (let i = 0; i < this.invoiceList.length; i++) {
+            this.invoiceList[i].checked = false
+          }
+          wepy.setStorageSync('invoiceInfo', {id: '', no: '不开发票'})
+        }
+      },
+      // 显示删除对话框
+      showDelModal(id) {
+        this.delId = id
+        this.isShowDel = true
+      },
+      // 执行删除操作
+      doDelHandle({ detail }) {
+        this.isShowDel = false
+        if (detail.index === 1) {
+          api.delInvoice({
+            data: {
+              session3rd: this.session3rd,
+              id: this.delId
+            },
+            method: 'POST'
+          }).then(res => {
+            console.log(res, '删除发票')
+            if (res.code === '200') {
+              wepy.showToast({
+                title: res.message,
+                icon: 'none',
+                duration: 2000,
+                mask: false
+              })
+              this.getInvoiceList()
+            }
+          })
+        }
+      },
+      // 跳转到编辑页面
+      jumpToEdit(item) {
+        wepy.navigateTo({ url: `/pages/invoice?id=${item.id}&invoice_type=${item.invoice_type}&email=${item.email}&invoice_title_type=${item.invoice_title_type}&invoice_title=${item.invoice_title}&invoice_num=${item.invoice_num}&type=edit` })
+      }
+    }
+    // 获取发票列表
+    getInvoiceList() {
+      api.getInvoice({
+        data: {
+          session3rd: this.session3rd
+        },
+        method: 'POST'
+      }).then(res => {
+        console.log(res, '获取发票')
+        if (res.code === '200') {
+          this.invoiceList = res.extraData.info
+          for (let i = 0; i < this.invoiceList.length; i++) {
+            this.invoiceList[i].checked = false
+          }
+          this.$apply()
+        }
+      })
+    }
+  }
+</script>

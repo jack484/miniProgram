@@ -1,0 +1,171 @@
+<style lang="less">
+.container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+</style>
+
+<script>
+import wepy from 'wepy'
+import 'wepy-async-function'
+
+import { setStore } from 'wepy-redux'
+import configStore from './store'
+
+const store = configStore()
+setStore(store)
+
+export default class extends wepy.app {
+  config = {
+    pages: [
+      'pages/authorize_new',
+      'pages/index',
+      'pages/me',
+      'pages/news',
+      'pages/subject',
+      'pages/searchSchool',
+      'pages/newsDetails',
+      'pages/subjectDetails',
+      'pages/myCollection',
+      'pages/schoolDetails',
+      'pages/scholarship',
+      'pages/schoolfellow',
+      'pages/scoreDetails',
+      'pages/searchSubject',
+      'pages/studentAdmissions',
+      'pages/schoolZSZC',
+      'pages/searchSchoolDesc',
+      'pages/interestIndex',
+      'pages/interestTest',
+      'pages/interestResult',
+      'pages/interestResultDetail',
+      'pages/lucky',
+      'pages/luckyDetail',
+      'pages/phone'
+    ],
+    window: {
+      backgroundTextStyle: 'light',
+      navigationBarBackgroundColor: '#5ba8ff',
+      navigationBarTitleText: '报考大学助手',
+      navigationBarTextStyle: '#fff',
+      enablePullDownRefresh: false
+    },
+    tabBar: {
+      selectedColor: '#5ba8ff',
+      backgroundColor: '#fff',
+      list: [
+        {
+          pagePath: 'pages/index',
+          text: '院校',
+          iconPath: 'images/icon_index1.png',
+          selectedIconPath: 'images/icon_index_active1.png'
+        },
+        {
+          pagePath: 'pages/subject',
+          text: '专业',
+          iconPath: 'images/icon_profession1.png',
+          selectedIconPath: 'images/icon_profession_active1.png'
+        },
+        {
+          pagePath: 'pages/interestIndex',
+          text: '性格测试',
+          iconPath: 'images/icon_test1.png',
+          selectedIconPath: 'images/icon_test_active1.png'
+        },
+        {
+          pagePath: 'pages/news',
+          text: '资讯',
+          iconPath: 'images/icon_news1.png',
+          selectedIconPath: 'images/icon_news_active1.png'
+        },
+        {
+          pagePath: 'pages/me',
+          text: '我的',
+          iconPath: 'images/icon_me1.png',
+          selectedIconPath: 'images/icon_me_active1.png'
+        }
+      ]
+    }
+  }
+
+  globalData = {
+    userInfo: null
+  }
+  constructor() {
+    super()
+    this.use('requestfix')
+    this.use('promisify')
+    this.intercept('request', {
+      config(config) {
+        // 每次请求将sessionId带上
+        let sessionId = wepy.getStorageSync('cookieKey')
+        if (sessionId) {
+          console.log('id:---'+sessionId)
+          config.header.Cookie = sessionId
+        }
+        // }
+        return config
+      }
+    })
+  }
+  onLaunch(ops) {
+    this.testAsync()
+    this.getWindow()
+    console.log(ops)
+    // 判断场景值
+    if (ops.scene === 1044) {
+    //  console.log(ops.shareTicket)
+      wepy.setStorageSync('shareTicket', ops.shareTicket)
+    }
+    // if (ops.scene === 1007 || ops.scene === 1008 || ops.scene === '1007' || ops.scene === '1008') {
+    //   // 统一进入授权登录页面
+    //   console.log('zhixingle')
+    //   var share = {shareQ: ops.query, authorize: true, path: ops.path}
+    //   wepy.setStorageSync('share', share)
+    // } else {
+    //   wepy.setStorageSync('share', '')
+    // }
+    // 上述方法有些问题，当小程序未销毁时候，进入别人分享的页面，场景值还是首次打开小程序的场景值，并不是1007和1008
+    // if (ops.query && ops.query.shareId) {
+    //   console.log('zhixingle')
+    //   var share = {shareQ: ops.query, authorize: true, path: ops.path}
+    //   wepy.setStorageSync('share', share)
+    // } else {
+    //   wepy.setStorageSync('share', '')
+    // }
+  }
+
+  sleep(s) {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        resolve('promise resolved')
+      }, s * 1000)
+    })
+  }
+
+  async testAsync() {
+    const data = await this.sleep(3)
+    console.log(data)
+  }
+
+  getUserInfo(cb) {
+    const that = this
+    if (this.globalData.userInfo) {
+      return this.globalData.userInfo
+    }
+    wepy.getUserInfo({
+      success(res) {
+        that.globalData.userInfo = res.userInfo
+        cb && cb(res.userInfo)
+      }
+    })
+  }
+  getWindow() {
+    wepy.setStorageSync('windowWidth', wepy.getSystemInfoSync().windowWidth)
+  }
+}
+</script>

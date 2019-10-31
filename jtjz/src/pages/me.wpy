@@ -1,0 +1,264 @@
+<style lang="less">
+.me{
+  background-color: #f5f5f5;
+  height: 100vh;
+  &-info{
+    height: 200rpx;
+    width: 750rpx;
+    background-color: #fff;
+    border-top: 1rpx solid #f4f4f4;
+    display: flex;
+    justify-content: space-between;
+    &-left{
+      padding-left: 185rpx;
+      font-size: 32rpx;
+      position: relative;
+      .touxiang{
+        width: 130rpx;
+        height: 130rpx;
+        border-radius: 50%;
+        background-color: #16aa8d;
+        position: absolute;
+        top:50%;
+        left: 30rpx;
+        transform: translateY(-50%);
+      }
+      .name,
+      .phone{
+        height: 50rpx;
+        line-height: 50rpx;
+      }
+      .name{
+        margin-top: 50rpx;
+      }
+    }
+    &-right{
+      padding-right: 40rpx;
+      line-height: 200rpx;
+      font-size: 26rpx;
+      position: relative;
+      .guanli{
+        width: 32rpx;
+        height: 32rpx;
+        position: absolute;
+        top: 50%;
+        left: 0rpx;
+        transform: translate(-110%,-50%);
+      }
+    }
+  }
+  &-aboutGoods{
+    margin: 20rpx 0;
+    padding: 0 25rpx;
+    background-color: #fff;
+    &-order{
+      border-bottom: 1rpx solid #f4f4f4;
+    }
+  }
+  &-other{
+    padding: 0 25rpx;
+    background-color: #fff;
+    &-collect,
+    &-discount,
+    &-inviteCode{
+      border-bottom: 1rpx solid #f4f4f4;
+    }
+  }
+  &-item{
+    height: 92rpx;
+    line-height: 92rpx;
+    padding-left: 90rpx;
+    color: #333;
+    font-size: 26rpx;
+    background-color: #fff;
+    position: relative;
+    .img{
+      width: 60rpx;
+      height: 60rpx;
+      position: absolute;
+      top: 20rpx;
+      left: 0rpx;
+    }
+    .arrow{
+      width: 12rpx;
+      height: 24rpx;
+      position: absolute;
+      right: 15rpx;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+  }
+  .goodsCount{
+    font-size: 24rpx;
+    width: 36rpx;
+    height: 36rpx;
+    line-height: 36rpx;
+    text-align: center;
+    color: #fff;
+    background-color: #16aa8d;
+    border-radius: 50%;
+    position: absolute;
+    right: 50rpx;
+    top: 30rpx;
+  }
+}
+</style>
+<template>
+  <view class="me">
+    <!-- 信息 -->
+    <load wx:if='{{!loading}}'></load>
+    <view wx:if='{{loading}}'>
+      <view class="me-info">
+        <view class="me-info-left">
+          <image class="touxiang" src='{{userInfo.headimg}}'/>
+          <view class="name">{{userInfo.nickname}}</view>
+          <view class="phone">{{userInfo.phone}}</view>
+        </view>
+      </view>
+      <view class="me-aboutGoods">
+        <view class="me-aboutGoods-order me-item" bindtap='jumpToMyOrder({{0}})'>
+          我的订单
+          <image src='../images/icon_dingdan.png' class="img"/>
+          <image src='../images/you81px.png' class="arrow"/>
+        </view>
+        <view class="me-aboutGoods-goods me-item" bindtap='jumpToMyOrder({{3}})'>
+          待收货
+          <image src='../images/icon_daishouhuo.png' class="img"/>
+          <image src='../images/you81px.png' class="arrow"/>
+          <view class="goodsCount">{{goodsList.length}}</view>
+        </view>
+      </view>
+      <view class="me-other">
+        <view class="me-other-collect me-item" bindtap='jumpToMyCollection'>
+          我的收藏
+          <image src='../images/icon_shoucang.png' class="img"/>
+          <image src='../images/you81px.png' class="arrow"/>
+        </view>
+        <view class="me-other-discount me-item" bindtap='jumpToDiscount'>
+          折扣券
+          <image src='../images/icon_zhekou.png' class="img"/>
+          <image src='../images/you81px.png' class="arrow"/>
+        </view>
+        <view class="me-other-inviteCode me-item" bindtap='jumpToInviteCode'>
+          邀请码
+          <image src='../images/icon_yaoqing.png' class="img"/>
+          <image src='../images/you81px.png' class="arrow"/>
+        </view>
+        <view class="me-other-address me-item" bindtap='jumpToAddress'>
+          收货地址
+          <image src='../images/icon_dizhi.png' class="img"/>
+          <image src='../images/you81px.png' class="arrow"/>
+        </view>
+        <view class="me-other-invoice me-item" bindtap='jumpToInvoice'>
+          我的发票
+          <image src='../images/icon_fapiao.png' class="img"/>
+          <image src='../images/you81px.png' class="arrow"/>
+        </view>
+      </view>
+    </view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  import api from '../api/api'
+
+  import load from '../components/load'
+
+  export default class Me extends wepy.page {
+    onShow() {
+      this.session3rd = wepy.getStorageSync('session3rd')
+      this.getMyOrder(1, 2)
+      setTimeout(() => {
+        this.loading = true
+        this.$apply()
+      }, 500)
+      // 获取我的信息
+      api.getInfo({
+        data: {
+          session3rd: this.session3rd
+        },
+        method: 'POST'
+      }).then(res => {
+        console.log(res, '我的信息')
+        if (res.code === '200') {
+          this.userInfo = res.extraData.info
+          this.$apply()
+        }
+      })
+      this.headimg = wepy.getStorageSync('userInfo').avatarUrl
+      this.nickname = wepy.getStorageSync('userInfo').nickName
+    }
+    onHide() {
+      setTimeout(() => {
+        this.loading = false
+        this.$apply()
+      }, 500)
+    }
+    onLoad() {
+      // this.phone = wepy.getStorageSync('phone')
+    }
+    config = {
+      navigationBarTitleText: '我的'
+    }
+    components = {
+      load
+    }
+    data = {
+      nickname: '',
+      headimg: '',
+      session3rd: '',
+      userInfo: {},
+      // goodsCount: 3,
+      loading: false,
+      goodsList: []
+    }
+    methods = {
+      // 跳转到收货地址
+      jumpToAddress() {
+        wepy.navigateTo({ url: '/pages/address' })
+      },
+      // 跳转到折扣券
+      jumpToDiscount() {
+        wepy.navigateTo({ url: '/pages/discount' })
+      },
+      // 跳转到邀请码
+      jumpToInviteCode() {
+        wepy.navigateTo({ url: '/pages/inviteCode' })
+      },
+      // 跳转到我的收藏
+      jumpToMyCollection() {
+        wepy.navigateTo({ url: '/pages/myCollection' })
+        // wepy.navigateTo({ url: '/pages/test' })
+      },
+      // 跳转到我的订单
+      jumpToMyOrder(type) {
+        wepy.navigateTo({ url: `/pages/myOrder?type=${type}` })
+      },
+      // 跳转到我的发票
+      jumpToInvoice(type) {
+        wepy.navigateTo({ url: `/pages/myInvoice` })
+      }
+    }
+    // 获取我的待收货订单
+    getMyOrder(payStatus = '', wlStatus = '') {
+      api.getOrder({
+        data: {
+          session3rd: this.session3rd,
+          // 支付状态 （0未支付，1已支付）
+          pay_status: payStatus,
+          // 物流状态 (0未支付无物流，1未发货，2发货中，3已完成)
+          wl_status: wlStatus
+        },
+        method: 'POST'
+      }).then(res => {
+        console.log(res, '我的订单列表')
+        if (res.code === '200') {
+          this.goodsList = res.extraData
+          this.$apply()
+        }
+      })
+    }
+  }
+</script>

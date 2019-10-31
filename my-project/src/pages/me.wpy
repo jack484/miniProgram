@@ -1,0 +1,205 @@
+<template>
+    <view class="me">
+        <view class="me-title">
+          <image src='../icon/me_bg.png' class="icon-bg"/>
+          <view class="me-title-avatar">
+            <image src='{{userInfo.avatarUrl}}' class="me-title-avatar-img" />
+            <image src='../icon/default@3x.png' class="me-title-avatar-img" wx:if='{{isShowDefaultImg}}' bindtap="gotoLogin"/>
+            <!-- <button wx:if='{{isShowDefaultImg}}' open-type='getUserInfo' bindgetuserinfo="onGotUserInfo" class="me-title-avatar-img" style='opacity:0;'></button> -->
+            <view class="me-title-avatar-user">{{userInfo.nickName}}<text wx:if='{{isShowDefaultImg}}'>点击头像登录</text></view>
+          </view>
+        </view>
+        <view class="me-part">
+          <view class="me-part-collection" bind:tap='jumpToMyCollection'>
+            我的收藏
+            <image class="icon-collect" src='../icon/collect.png'/>
+          </view>
+          <view class="me-part-service">
+            <view class="me-part-service-text">客服中心</view>
+            <button open-type='contact' class="me-part-service-btn">客服按钮</button>
+            <image src='../icon/contact.png' class="icon-contact"/>
+          </view>
+          <view class="me-part-collection" bind:tap='jumpToMyText'>
+            我的测试
+            <image class="icon-collect" src='../icon/test.png'/>
+          </view>
+        </view>
+        <view class="App">
+          <image src='../icon/slime.png' class="ewm"/>
+          <view>到应用商店搜索“报考大学”,下载APP,</view>
+          <view>享受更多、更全面的高考信息与填报志愿功能</view>
+        </view>
+        <!-- <i-modal visible="{{ visible2 }}" bind:ok="handleClose2" bind:cancel="handleClose2" wx:if='{{checkKQ}}'>
+          <view>请先在首页选择考区！</view>
+        </i-modal> -->
+    </view>
+</template>
+<script>
+import wepy from 'wepy'
+
+export default class Me extends wepy.page {
+  data = {
+    userInfo: {},
+    isShowDefaultImg: false,
+    checkKQ: true,
+    visible2: false
+  }
+  methods = {
+    // 跳转到我的收藏页面
+    jumpToMyCollection() {
+      wepy.navigateTo({ url: '/pages/myCollection' })
+    },
+    jumpToMyText() {
+      wepy.navigateTo({url: '/pages/interestResultDetail?me=mytest'})
+    },
+    handleOpen2 () {
+      wepy.navigateTo({ url: '/pages/index' })
+    },
+    handleClose2 () {
+      this.visible2 = true
+    },
+    gotoLogin () {
+      wepy.redirectTo({
+        url: '/pages/authorize_new'
+      })
+    }
+    // 登录改在了首页
+    // onGotUserInfo(e) {
+    //   console.log(e.detail)
+    //   if (e.detail.errMsg === 'getUserInfo:ok') {
+    //     this.userInfo = e.detail.userInfo
+    //     wepy.setStorageSync('userInfo', e.detail.userInfo)
+    //     wepy.redirectTo({
+    //       url: '/pages/authorize_new'
+    //     })
+    //     // this.$apply()
+    //     // this.isShowDefaultImg = false
+    //   } else if (e.detail.errMsg === 'getUserInfo:fail auth deny') {
+    //     wepy.showToast({
+    //       title: '登录失败，请重新点击登录',
+    //       icon: 'none',
+    //       duration: 2000,
+    //       mask: true
+    //     })
+    //   }
+    // }
+  }
+  onLoad() {
+    // if (wepy.getStorageSync('kq')) {
+    //   this.checkKQ = false
+    // } else {
+    //   this.checkKQ = true
+    // }
+    this.userInfo = wepy.getStorageSync('userInfo')
+    console.log(this.userInfo)
+    if (this.userInfo === '') {
+      this.isShowDefaultImg = true
+    }
+  }
+}
+</script>
+<style lang="less" scoped>
+.me {
+  &-title{
+    width: 750rpx;
+    height: 266rpx;
+    position: relative;
+    .icon-bg{
+      width: 750rpx;
+      height: 266rpx;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    &-avatar{
+      width: 750rpx;
+      height: 160rpx;
+      position: absolute;
+      top: 30rpx;
+      left: 50%;
+      transform: translateX(-50%);
+      &-img{
+        width: 160rpx;
+        height: 160rpx;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        border-radius: 50%;
+      }
+      &-user{
+        color: #fff;
+        font-size: 30rpx;
+        position: absolute;
+        bottom: -50rpx;
+        left: 50%;
+        transform: translateX(-50%)
+      }
+    }
+  }
+  &-part{
+    line-height: 120rpx;
+    font-size: 30rpx;
+    margin-bottom: 190rpx;
+    &-collection{
+      height: 120rpx;
+      width: 660rpx;
+      border-bottom: 1rpx solid #dcdcdc;
+      padding-left: 90rpx;
+      position: relative;
+    }
+    &-service{
+      height: 120rpx;
+      width: 750rpx;
+      position: relative;
+      border-bottom: 1rpx solid #dcdcdc;
+      &-text{
+        position: absolute;
+        top: 0;
+        left: 0;
+        padding-left: 90rpx;
+      }
+      &-btn{
+        width: 100%;
+        opacity: 0;
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+    }
+  }
+  &-download{
+    width: 600rpx;
+    height: 90rpx;
+    background-color: #5ba8ff;
+    position: absolute;
+    bottom: 60rpx;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 20rpx;
+    text-align: center;
+    line-height: 90rpx;
+    color: #fff;
+    font-size: 30rpx;
+  }
+  .App{
+    font-size: 30rpx;
+    line-height: 40rpx;
+    color: #999;
+    text-align: center;
+    .ewm{
+      width: 100rpx;
+      height: 90rpx;
+      margin-bottom: 40rpx;
+    }
+  }
+  .icon-collect,
+  .icon-contact{
+    height: 45rpx;
+    width: 40rpx;
+    position: absolute;
+    top: 40rpx;
+    left: 30rpx;
+  }
+}
+</style>

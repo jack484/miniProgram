@@ -1,0 +1,358 @@
+<template>
+    <view class="news">
+      <i-tabs current="{{ current }}" bindchange="handleChange" class="subject-tabs">
+        <i-tab key="3" title="高考攻略" color='#5ba8ff' style='position:fixed; top:0;left:65rpx'></i-tab>
+        <i-tab key="1" title="{{KQname}}本地动态" color='#5ba8ff' style='position:fixed; top:0;left:292rpx'></i-tab>
+        <i-tab key="2" title="院校资讯" color='#5ba8ff' style='position:fixed; top:0;right:65rpx'></i-tab>
+      </i-tabs>
+      <view>
+        <scroll-view scroll-y="true" style="white-space: nowrap;width: 100%;height:91.5%;position:absolute; top:100rpx; left:0rpx; background-color:#f2f5f7;" bindscrolltolower='loadOtherNewsUp(1,2,3)' enable-back-to-top>
+          <swiper indicator-dots="{{indicatorDots}}" autoplay="{{autoplay}}" interval="{{interval}}" duration="{{duration}}" circular indicator-color='white' bindchange='ctrlDots'>
+            <block wx:for="{{lbtImgUrl}}" wx:key='index'>
+              <swiper-item>
+                <navigator url="/pages/newsDetails?pageTitle={{current}}&lbtid={{item.id}}&type=lbt&kq={{kq}}">
+                  <image src="http://img.baokaodaxue.com{{item.img}}" class="slide-image"/>
+                </navigator>
+              </swiper-item>
+            </block>
+          </swiper>
+          <view class="swiper-indicator">
+            <view class="swiper-title">{{lbtImgUrl[activeDot].title}}</view>
+            <view class="dotsContent">
+              <block wx:for='{{lbtImgUrl.length}}' wx:key='index'>
+                <text class="dots {{ index == activeDot ? 'dotsActive' : ''}}"></text>
+              </block>
+            </view>
+          </view>
+          <!-- 新闻列表 -->
+          <view class="newsList">
+            <block wx:for='{{newsDescListgl}}' wx:key='index' wx:if='{{newsDescListgl}}'>
+              <navigator class="newsCard" url="/pages/newsDetails?pageTitle={{current}}&newid={{item.id}}&type=new&kq={{kq}}&test={{123}}">
+                <image class="newsCard-img"  src='http://img.baokaodaxue.com{{item.img}}' />
+                <view class="newsCard-content">
+                  <view class="newsCard-content-title">{{item.title}}</view>
+                  <view class="newsCard-content-time">{{item.time}}</view>
+                </view>
+              </navigator>
+            </block>
+
+            <block wx:for='{{newsDescListdt}}' wx:key='index' wx:if='{{newsDescListdt}}'>
+              <navigator class="newsCard" url="/pages/newsDetails?pageTitle={{current}}&newid={{item.id}}&type=new&kq={{kq}}" >
+                <image class="newsCard-img"  src='http://img.baokaodaxue.com{{item.img}}' />
+                <view class="newsCard-content">
+                  <view class="newsCard-content-title">{{item.title}}</view>
+                  <view class="newsCard-content-time">{{item.time}}</view>
+                </view>
+              </navigator>
+            </block>
+
+            <block wx:for='{{newsDescListzx}}' wx:key='index' wx:if='{{newsDescListzx}}'>
+              <navigator class="newsCard" url="/pages/newsDetails?pageTitle={{current}}&newid={{item.id}}&type=new&kq={{kq}}">
+                <image class="newsCard-img"  src='http://img.baokaodaxue.com{{item.img}}' />
+                <view class="newsCard-content">
+                  <view class="newsCard-content-title">{{item.title}}</view>
+                  <view class="newsCard-content-time">{{item.time}}</view>
+                </view>
+              </navigator>
+            </block>
+          </view>
+        </scroll-view>
+      </view>
+    </view>
+</template>
+<script>
+import wepy from 'wepy'
+
+import api from '../api/api'
+
+import com from '../utils/common'
+
+export default class News extends wepy.page {
+  onShow() {
+    if (this.type !== 'news') {
+      this.KQname = wepy.getStorageSync('KQname') || '广东'
+      this.kq = wepy.getStorageSync('kq') || 15
+    }
+  }
+  onLoad(opt) {
+    // console.log(opt, 'news')
+    // 判断分享页入口
+    var share = wepy.getStorageSync('share')
+    // console.log(share)
+    if (share.fromPage === 'news') {
+      this.kq = share.kq
+      this.KQname = share.kqname
+      this.current = +share.current
+      this.type = share.fromPage
+    }
+    // console.log(this.kq, this.KQname, this.current, this.type)
+    // 主页面
+    this.uid = wepy.getStorageSync('uid')
+    // this.kq = this.$parent.globalData.kq
+    this.getNewsInfolbt(this.current)
+    this.getNewsDesc(this.current)
+    wepy.showLoading({
+      title: '正在加载资讯',
+      mask: true
+    }).then(() => {
+      wepy.hideLoading()
+    })
+  }
+  onHide() {
+    // 从分享页面进入后，切换页面就去掉该数据
+    if (this.type) {
+      this.type = ''
+    }
+  }
+  config = {
+    'component': true,
+    'usingComponents': {
+      'i-tabs': '../components/iView-components/tabs/index',
+      'i-tab': '../components/iView-components/tab/index'
+    }
+  }
+  data = {
+    type: '',
+    current: 3,
+    KQname: '',
+    showTabBody: [true, false, false],
+    autoplay: true,
+    interval: 2000,
+    duration: 100,
+    activeDot: 0,
+    lbtImgUrl: [],
+    newsDescListgl: [],
+    newsDescListdt: [],
+    newsDescListzx: [],
+    glpage: 1,
+    dtpage: 1,
+    zxpage: 1,
+    kq: '',
+    checkNews: true,
+    zxLength: '',
+    dtLength: '',
+    glLength: '',
+    uid: ''
+  }
+  methods = {
+    // tab栏切换
+    handleChange ({ detail }) {
+      this.current = +detail.key
+      console.log(this.current)
+      com.handleChangeFor(this.showTabBody, this.current)
+      // 获取不同的轮播图
+      this.getNewsInfolbt(this.current)
+      this.getNewsDesc(this.current)
+      this.checkNews = true
+      this.glpage = 1
+      this.dtpage = 1
+      this.zxpage = 1
+      // 获取不同的新闻列表
+    },
+    // 控制小圆点改变
+    ctrlDots(e) {
+      var dotsIndex = e.detail.current
+      this.activeDot = dotsIndex
+    },
+    // 点击跳转到轮播图详情
+    // jumpToLbtDesc(id) {
+    //   wepy.navigateTo({ url: `/pages/newsDetails?pageTitle=${this.current}&lbtid=${id}&type=lbt` })
+    // },
+    // // 点击跳转到新闻详情
+    // jumpToNewsDesc(id) {
+    //   wepy.navigateTo({ url: `/pages/newsDetails?pageTitle=${this.current}&newid=${id}&type=new` })
+    // },
+    // 上拉加载新闻
+    loadOtherNewsUp(a, b, c) {
+      if (this.checkNews) {
+        if (this.current === +a) {
+          this.glpage += 1
+          this.getNewsDesc(this.current, this.glpage)
+        } else if (this.current === +b) {
+          this.dtpage += 1
+          this.getNewsDesc(this.current, this.dtpage)
+        } else if (this.current === +c) {
+          this.zxpage += 1
+          this.getNewsDesc(this.current, this.zxpage)
+        }
+      }
+    }
+  }
+  watch = {
+    kq() {
+      console.log('kq')
+      this.newsDescListdt.splice(0, this.newsDescListdt.length)
+      this.newsDescListgl.splice(0, this.newsDescListgl.length)
+      this.newsDescListzx.splice(0, this.newsDescListzx.length)
+      // 考区切换，重新加载对应的新闻
+      this.getNewsInfolbt(this.current)
+      this.getNewsDesc(this.current)
+      this.glpage = 1
+      this.dtpage = 1
+      this.zxpage = 1
+      return this.kq
+    }
+  }
+  // 页面转发功能
+  onShareAppMessage(res) {
+    return {
+      title: '高校资讯',
+      path: `/pages/authorize_new?fromPage=news&kq=${this.kq}&kqname=${this.KQname}&current=${this.current}&shareId=${this.uid}`
+    }
+  }
+  getNewsInfolbt(type) {
+    api.getNewsListlbt({
+      data: {
+        type: type,
+        kq: this.kq
+      }
+    }).then(res => {
+    //   console.log(res)
+      if (res.code === '200') {
+        this.lbtImgUrl = res.extraData.dt
+        this.$apply()
+      }
+    })
+  }
+  getNewsDesc(type, page = 1) {
+    wepy.showLoading({
+      title: '',
+      mask: true
+    }).then(() => {
+      api.getNewsList({
+        data: {
+          type: type,
+          kq: this.kq,
+          page: page
+        }
+      }).then(res => {
+        // console.log(res, '新闻列表')
+        if (res.code === '200') {
+          // 处理时间戳
+          for (let i = 0; i < res.extraData.info.length; i++) {
+            res.extraData.info[i].time = com.filterTime(+res.extraData.info[i].time)
+          }
+          if (type === 1) {
+            this.newsDescListdt = []
+            this.newsDescListzx = []
+            if (!this.newsDescListgl) {
+              this.newsDescListgl = []
+            }
+            this.newsDescListgl = this.newsDescListgl.concat(res.extraData.info)
+            this.glLength = this.newsDescListgl.length
+          }
+          if (type === 2) {
+            this.newsDescListgl = []
+            this.newsDescListzx = []
+            if (!this.newsDescListdt) {
+              this.newsDescListdt = []
+            }
+            this.newsDescListdt = this.newsDescListdt.concat(res.extraData.info)
+            this.dtLength = this.newsDescListdt.length
+          }
+          if (type === 3) {
+            this.newsDescListdt = []
+            this.newsDescListgl = []
+            if (!this.newsDescListzx) {
+              this.newsDescListzx = []
+            }
+            this.newsDescListzx = this.newsDescListzx.concat(res.extraData.info)
+            this.zxLength = this.newsDescListzx.length
+          }
+          if (res.extraData.info.length === 0) {
+            this.checkNews = false
+          }
+          this.$apply()
+          wepy.hideLoading()
+        }
+      })
+    })
+  }
+}
+</script>
+<style lang="less" scoped>
+.slide-image{
+  width: 750rpx;
+  height: 360rpx;
+}
+.swiper-indicator {
+  width: 750rpx;
+  height: 60rpx;
+  background-color: rgba(0,0,0,.3);
+  position: absolute;
+  top: 293rpx;
+  left: 0;
+  .dotsContent{
+    display: flex;
+    width: 66rpx;
+    height: 15rpx;
+    justify-content: space-between;
+    position: absolute;
+    bottom: 20rpx;
+    right: 20rpx;
+    .dots{
+      display: block;
+      width: 15rpx;
+      height: 15rpx;
+      border-radius: 50%;
+      background-color: #fff;
+    }
+    .dotsActive {
+      background-color: #5ba8ff;
+    }
+  }
+  .swiper-title{
+    font-size: 25rpx;
+    padding-left: 20rpx;
+    height: 60rpx;
+    line-height: 60rpx;
+    color: #fff;
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+}
+.newsList{
+  position: absolute;
+  top: 353rpx;
+  left: 0;
+  .newsCard {
+    width: 750rpx;
+    height: 180rpx;
+    background-color: #fff;
+    padding: 20rpx;
+    box-sizing: border-box;
+    display: flex;
+    border-bottom: 1rpx solid #dcdcdc;
+    &-img{
+      width: 190rpx;
+      height: 145rpx;
+    }
+    &-content {
+      flex: 1;
+      margin-left: 20rpx;
+      position: relative;
+      &-title {
+        width: 100%;
+        line-height: 40rpx;
+        margin-top: 10rpx;
+        font-size: 30rpx;
+        color: #333;
+        position: absolute;
+        left: 0;
+        top: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      &-time {
+        font-size: 20rpx;
+        color: #a8a8a8;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+      }
+    }
+  }
+}
+</style>

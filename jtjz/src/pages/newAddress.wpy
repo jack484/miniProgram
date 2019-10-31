@@ -1,0 +1,253 @@
+<style lang="less">
+.newAddress{
+  color: #999;
+  font-size: 26rpx;
+  overflow: hidden;
+  background-color: #f5f5f5;
+  height: 100vh;
+  input,
+  picker{
+    background-color: #fff;
+    height: 100rpx;
+    line-height: 100rpx;
+    border-bottom: 1rpx solid #dcdcdc;
+    padding-left: 40rpx;
+  }
+  .picker-item{
+    margin-right: 30rpx;
+  }
+  .people{
+    margin-top: 20rpx;
+  }
+  .addressDesc{
+    border-bottom: none;
+  }
+  .save-disable{
+    width: 600rpx;
+    height: 80rpx;
+    line-height: 80rpx;
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 50rpx;
+    color: #fff;
+    background-color: #ccc;
+    font-size: 32rpx;
+  }
+  .active{
+    background-color: #19a88f;
+  }
+}
+</style>
+<template>
+  <view class="newAddress">
+    <input type="text" placeholder='收货人' class="people" value="{{name}}" bindinput='savePeople' focus/>
+    <input type="number" placeholder='手机号码' value="{{phone}}" bindinput='savePhone'/>
+    <picker mode="region" bindchange="bindRegionChange" value="" custom-item="">
+      <view class="picker">
+        <text wx:if="{{region.length == 0}}">所在地区</text>
+        <text class="picker-item">{{region[0]}}</text>
+        <text class="picker-item">{{region[1]}}</text>
+        <text class="picker-item">{{region[2]}}</text>
+      </view>
+    </picker>
+    <input type="text" placeholder='详细地址:如道路,门牌号,小区、楼栋号等' class="addressDesc" value='{{addressDesc}}' bindinput='saveAddressDesc'/>
+    <!-- <view class="setDefault">设置为默认地址</view> -->
+    <button class="save-disable {{saveActive ? 'active' : ''}}" bindtap='submitNewAddress'>{{handle}}</button>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  import api from '../api/api'
+
+  export default class NewAddress extends wepy.page {
+    onShow() {
+      this.session3rd = wepy.getStorageSync('session3rd')
+    }
+    onLoad(opt) {
+      console.log(opt)
+      if (opt.name) {
+        this.id = opt.id
+        this.isEdit = true
+        this.addressIndex = opt.id
+        this.name = opt.name
+        this.phone = opt.phone
+        this.addressDesc = opt.addressDesc
+        this.checked = opt.checked
+        this.region[0] = opt.province
+        this.region[1] = opt.city
+        this.region[2] = opt.area
+        wepy.setNavigationBarTitle({ title: '修改地址' })
+      }
+    }
+    config = {
+      navigationBarTitleText: '新增地址'
+    }
+    data = {
+      isEdit: false,
+      addressIndex: '',
+      reg: /^1[3|4|5|6|7|8|9][0-9]{9}$/,
+      region: [],
+      name: '',
+      phone: '',
+      addressDesc: '',
+      checked: '',
+      saveActive: false,
+      handle: '保存',
+      addressArr: []
+    }
+    methods = {
+      // 省市选择器
+      bindRegionChange: function (e) {
+        console.log('picker发送选择改变，携带值为', e.detail.value)
+        this.region = e.detail.value
+      },
+      // 保存联系人
+      savePeople(e) {
+        this.name = e.detail.value
+      },
+      // 保存联系电话
+      savePhone(e) {
+        this.phone = e.detail.value
+      },
+      // 保存详细地址
+      saveAddressDesc(e) {
+        this.addressDesc = e.detail.value
+      },
+      // 保存新地址或编辑地址
+      submitNewAddress() {
+        if (!this.name) {
+          wepy.showToast({
+            title: '请输入收货人姓名',
+            icon: 'none',
+            duration: 2000,
+            mask: false
+          })
+        } else if (!this.phone) {
+          wepy.showToast({
+            title: '请输入手机号码',
+            icon: 'none',
+            duration: 2000,
+            mask: false
+          })
+        } else if (this.region.length === 0) {
+          wepy.showToast({
+            title: '请选择所在地区',
+            icon: 'none',
+            duration: 2000,
+            mask: false
+          })
+        } else if (!this.addressDesc) {
+          wepy.showToast({
+            title: '请输入详细地址',
+            icon: 'none',
+            duration: 2000,
+            mask: false
+          })
+        } else if (this.region.length !== 0 && this.name && this.phone && this.addressDesc) {
+          if (!this.reg.test(this.phone)) {
+            wepy.showToast({
+              title: '请输入正确的手机号',
+              icon: 'none',
+              duration: 3000,
+              mask: false
+            })
+          } else {
+            console.log('保存成功')
+            // 新地址对象
+            let newAddress = {
+              name: this.name,
+              phone: this.phone,
+              province: this.region[0],
+              city: this.region[1],
+              area: this.region[2],
+              addressDesc: this.addressDesc,
+              id: this.id,
+              checked: this.checked
+            }
+            // 排除相同省市名相同的情况
+            if (this.region[0] !== this.region[1]) {
+              newAddress.address = this.region[0] + this.region[1] + this.region[2] + this.addressDesc
+            } else {
+              newAddress.address = this.region[0] + this.region[2] + this.addressDesc
+            }
+
+            if (!this.addressArr) {
+              this.addressArr = []
+            }
+
+            // 发送保存地址请求:判断编辑状态、新增
+            if (this.isEdit) {
+              // 编辑
+              this.doUserEditAddr(newAddress.id, this.session3rd, newAddress.name, newAddress.phone, newAddress.addressDesc, newAddress.province, newAddress.city, newAddress.area, newAddress.checked)
+            } else {
+              // 新增
+              this.doUserSaveAddr(newAddress.name, newAddress.phone, newAddress.province, newAddress.city, newAddress.area, newAddress.addressDesc, this.session3rd)
+            }
+            wepy.setStorageSync('addressArr', this.addressArr)
+            wepy.showToast({
+              title: '保存成功',
+              icon: 'success',
+              duration: 1500,
+              mask: true
+            })
+            setTimeout(() => {
+              wepy.navigateBack({
+                delta: 1
+              })
+            }, 1500)
+          }
+        }
+      }
+    }
+    // 新增地址操作
+    doUserSaveAddr(name, phone, province, city, area, detlAddr, session3rd, checked = 0) {
+      api.userSaveAddr({
+        data: {
+          name: name,
+          phone: phone,
+          detlAddr: detlAddr,
+          province: province,
+          city: city,
+          area: area,
+          checked: checked,
+          session3rd: session3rd
+        },
+        method: 'POST'
+      }).then(res => {
+        console.log(res, '新增地址')
+      })
+    }
+    // 编辑地址保存
+    doUserEditAddr(id, session3rd, name, phone, detlAddr, province, city, area, checked) {
+      api.userEditAddr({
+        data: {
+          id: id,
+          session3rd: session3rd,
+          name: name,
+          phone: phone,
+          detlAddr: detlAddr,
+          province: province,
+          city: city,
+          area: area,
+          checked: checked
+        },
+        method: 'POST'
+      }).then(res => {
+        console.log(res, '修改地址')
+      })
+    }
+    computed = {
+      saveActive() {
+        if (this.region.length !== 0 && this.name && this.phone && this.addressDesc) {
+          this.saveActive = true
+        } else {
+          this.saveActive = false
+        }
+        return this.saveActive
+      }
+    }
+  }
+</script>

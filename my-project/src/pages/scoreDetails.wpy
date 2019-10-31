@@ -1,0 +1,362 @@
+<template>
+    <view class="scoreDetails">
+      <view class="scoreDetails-title">
+        {{subName}}
+      </view>
+      <view class="scoreDetails-content">
+        <view class="scoreDetails-content-title">
+          <view class="scoreDetails-content-title-name">
+            专业录取分数线
+          </view>
+          <view class="scoreDetails-content-title-picker">
+            <picker bindchange="scorePicker" value="{{pickerScoreIndex}}" range="{{pickerScore}}" class="schoolScore-content-picker-subject">
+              <view>
+                <text wx:if="{{!pickerScoreIndex}}">{{pickerScore[0]}}</text>{{pickerScore[pickerScoreIndex]}}
+              </view>
+              <view class="arrow"></view>
+            </picker>
+          </view>
+        </view>
+        <view class="scoreDetails-content-chart">
+          <canvas canvas-id="chart" style='width:750rpx;height:300rpx'>
+            <view class="fenshu" style='top:{{firstLine + 10}}rpx' wx:if="{{showFS[0] && showFS[0] != '-' }}">{{showFSArr[0]}}</view>
+            <view class="fenshu" style='top:{{secondLine + 10}}rpx' wx:if="{{showFS[1] && showFS[0] != '-'}}">{{showFSArr[1]}}</view>
+            <view class="fenshu" style='top:{{thridLine + 10}}rpx' wx:if="{{showFS[2] && showFS[0] != '-'}}">{{showFSArr[2]}}</view>
+          </canvas>
+          <view class="scoreDetails-content-chart-title">
+              <view>{{fenshuYear[0]}}</view>
+              <view>{{fenshuYear[1]}}</view>
+              <view>{{fenshuYear[2]}}</view>
+          </view>
+        </view>
+        <view class="scoreDetails-content-table">
+          <view class="scoreDetails-content-table-head">
+            <view class="scoreDetails-content-table-head-line">
+              <view class="years">年份</view>
+              <view class="batch">招生批次</view>
+              <view class="highest">最高分</view>
+              <view class="lowest">最低分</view>
+              <view class="average">平均分</view>
+              <view class="zdwc">最低位次</view>
+            </view>
+          </view>
+          <view class="scoreDetails-content-table-body">
+            <block wx:for='{{scoreData}}' wx:key='index'>
+              <view class="scoreDetails-content-table-body-line">
+                <view class="years">{{item.year}}</view>
+                <view class="batch">{{item.pici2}}</view>
+                <view class="highest">{{item.gaofen == '0' ? '--' : item.gaofen}}</view>
+                <view class="lowest">{{item.difen == '0' ? '--' : item.difen}}</view>
+                <view class="average">{{item.pjfen == '0' ? '--' : item.pjfen}}</view>
+                <view class="average">{{item.zdwc == '0' ? '--' : item.zdwc}}</view>
+              </view>
+            </block>
+          </view>
+        </view>
+      </view>
+    </view>
+</template>
+<script>
+import wepy from 'wepy'
+
+import api from '../api/api'
+
+export default class ScoreDetails extends wepy.page {
+  onLoad(options) {
+    console.log(options)
+    this.currentBarTitle = options.pageTitle
+    this.subName = options.subName
+    this.wl = options.wl
+    this.cid = options.cid
+    wepy.setNavigationBarTitle({ title: this.currentBarTitle })
+
+    // 获取专业分数线
+    wepy.showLoading({
+      title: '加载分数中',
+      mask: true
+    }).then(() => {
+      api.getSchoolSubDesc({
+        data: {
+          major: options.subName,
+          cid: options.cid,
+          wl: options.wl,
+          kq: wepy.getStorageSync('kq')
+        }
+      }).then(res => {
+        console.log(res, '分数详情')
+        if (res.code === '200') {
+          this.scoreData = res.extraData
+          // 取出最高分和最低分
+          if (!this.ganfenArr) {
+            this.ganfenArr = []
+          }
+          if (!this.difenArr) {
+            this.difenArr = []
+          }
+          if (!this.fenshuYear) {
+            this.fenshuYear = []
+          }
+          for (let i = 0; i < this.scoreData.length; i++) {
+            this.pjfenArr.push(this.scoreData[i].pjfen)
+            this.difenArr.push(this.scoreData[i].difen)
+            this.fenshuYear.push(this.scoreData[i].year)
+          }
+          this.$apply()
+          wepy.hideLoading()
+        }
+        this.drawLine(this.difenArr)
+      })
+    })
+  }
+  data = {
+    currentBarTitle: '',
+    subName: '',
+    wl: '',
+    cid: '',
+    pickerScore: ['录取最低分', '录取平均分'],
+    pickerScoreIndex: '',
+    tableData: [
+      { data: ['1', '2', '3', '4', '5'] },
+      { data: ['1', '2', '3', '4', '5'] },
+      { data: ['1', '2', '3', '4', '5'] }
+    ],
+    fenshu: [605, 504, 666],
+    firstLine: 0,
+    secondLine: 0,
+    thridLine: 0,
+    scoreData: [],
+    pjfenArr: [],
+    difenArr: [],
+    fenshuYear: [],
+    showFS: [false, false, false],
+    showFSArr: []
+  }
+  methods = {
+    scorePicker(e) {
+      this.pickerScoreIndex = e.detail.value
+      console.log(this.pickerScoreIndex)
+      if (this.pickerScoreIndex === '1') {
+        this.drawLine(this.pjfenArr)
+      } else if (this.pickerScoreIndex === '0') {
+        this.drawLine(this.difenArr)
+      }
+    }
+  }
+  drawLine(fenshuArr) {
+    this.showFSArr = fenshuArr
+    let width = wepy.getStorageSync('windowWidth')
+    for (let i = 0; i < fenshuArr.length; i++) {
+      if (fenshuArr[i] && fenshuArr[i] !== '-') {
+        this.showFS[i] = true
+        // 分数标题top坐标
+        this.firstLine = 300 - +fenshuArr[0] * 0.35
+        this.secondLine = 300 - +fenshuArr[1] * 0.35
+        this.thridLine = 300 - +fenshuArr[2] * 0.35
+        this.$apply()
+        // 绘制高度比例：0.35---1分高0.35rpx
+        var ctx = wepy.createCanvasContext('chart')
+        // 分数间相连
+        // ctx.beginPath()
+        ctx.setLineDash([0], 0)
+        ctx.setStrokeStyle('#5ba8ff')
+        // if (fenshuArr[0] && fenshuArr[0] !== '-') {
+        //   ctx.lineTo(width * 0.17, 300 - +fenshuArr[0] * 0.35)
+        // }
+        // if (fenshuArr[1] && fenshuArr[1] !== '-') {
+        //   ctx.lineTo(width * 0.50, 300 - +fenshuArr[1] * 0.35)
+        // }
+        // if (fenshuArr[2] && fenshuArr[2] !== '-') {
+        //   ctx.lineTo(width * 0.82, 300 - +fenshuArr[2] * 0.35)
+        // }
+        // ctx.stroke()
+        // ctx.closePath()
+        ctx.setFillStyle('#5ba8ff')
+        ctx.beginPath()
+        if (fenshuArr[0] && fenshuArr[0] !== '-') {
+          ctx.arc(width * 0.17, 300 - +fenshuArr[0] * 0.35, 3, 0, 2 * Math.PI)
+        }
+        ctx.fill()
+        ctx.closePath()
+
+        ctx.beginPath()
+        if (fenshuArr[1] && fenshuArr[1] !== '-') {
+          ctx.arc(width * 0.50, 300 - +fenshuArr[1] * 0.35, 3, 0, 2 * Math.PI)
+        }
+        ctx.fill()
+        ctx.closePath()
+
+        ctx.beginPath()
+        if (fenshuArr[2] && fenshuArr[2] !== '-') {
+          ctx.arc(width * 0.82, 300 - +fenshuArr[2] * 0.35, 3, 0, 2 * Math.PI)
+        }
+        ctx.fill()
+        ctx.closePath()
+
+        ctx.setLineDash([5], 1)
+        ctx.setStrokeStyle('#999')
+
+        if (fenshuArr[0] !== 0 && fenshuArr[0] !== '-' && fenshuArr[0]) {
+          // 第一条直线
+          ctx.beginPath()
+          ctx.moveTo(width * 0.17, 300)
+          ctx.lineTo(width * 0.17, 300 - +fenshuArr[0] * 0.35)
+          ctx.stroke()
+        }
+
+        if (fenshuArr[1] !== 0 && fenshuArr[1] !== '-' && fenshuArr[1]) {
+          // 第二条直线
+          ctx.beginPath()
+          ctx.moveTo(width * 0.50, 300)
+          ctx.lineTo(width * 0.50, 300 - +fenshuArr[1] * 0.35)
+          ctx.stroke()
+        }
+
+        if (fenshuArr[2] !== 0 && fenshuArr[2] !== '-' && fenshuArr[2]) {
+          // 第三条直线
+          ctx.beginPath()
+          ctx.moveTo(width * 0.82, 300)
+          ctx.lineTo(width * 0.82, 300 - +fenshuArr[2] * 0.35)
+          ctx.stroke()
+        }
+
+        ctx.draw()
+      }
+    }
+  }
+  getWindow() {
+    wepy.setStorageSync('windowWidth', wepy.getSystemInfoSync().windowWidth)
+  }
+}
+</script>
+<style lang="less" scoped>
+.scoreDetails{
+  background-color: #f2f5f7;
+  &-title{
+    background-color: #fff;
+    height: 90rpx;
+    line-height: 90rpx;
+    width: 750rpx;
+    text-align: center;
+    font-size: 28rpx;
+    margin-bottom: 14rpx;
+    border-top: 1rpx solid #dcdcdc;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  &-content{
+    background-color: #fff;
+    &-title{
+      height: 90rpx;
+      line-height: 90rpx;
+      display: flex;
+      padding: 0 20rpx;
+      &-name {
+        font-size: 30rpx;
+        width: 500rpx;
+        font-weight: 600;
+      }
+      &-picker{
+        picker{
+          font-size: 24rpx;
+          border: 1rpx solid #dcdcdc;
+          width: 182rpx;
+          height: 58rpx;
+          line-height: 58rpx;
+          text-align: center;
+          position: relative;
+          margin-top: 20rpx;
+        }
+      }
+    }
+    &-table{
+      &-head,
+      &-body{
+        &-line{
+          height: 70rpx;
+          font-size: 28rpx;
+          color: #999;
+          background-color: #f5f5f5;
+          margin-left: -1rpx;
+          border-bottom: 1rpx solid #dcdcdc;
+          border-top: 1rpx solid #dcdcdc;
+          display: flex;
+          view{
+            height: 70rpx;
+            line-height: 70rpx;
+            width: 134rpx;
+            text-align: center;
+            border-left: 1rpx solid #dcdcdc;
+          }
+        }
+      }
+      &-body{
+        &-line{
+          background-color: #fff;
+          color: #333;
+          border-top: 0;
+        }
+      }
+    }
+    &-chart{
+      margin-bottom: 14rpx;
+      border-bottom: 1rpx solid #dcdcdc;
+      &-title{
+        display: flex;
+        line-height: 50rpx;
+        height: 50rpx;
+        border-top: 2rpx solid #dcdcdc;
+        margin: 0 20rpx;
+        box-sizing: border-box;
+        view{
+          flex: 1;
+          text-align: center;
+          color: #666;
+          font-size: 20rpx;
+        }
+      }
+      .fenshu{
+        width: 80rpx;
+        height: 40rpx;
+        line-height: 40rpx;
+        border-radius: 10rpx;
+        background-color: #5ba8ff;
+        color: #fff;
+        text-align: center;
+        font-size: 22rpx;
+        position: absolute;
+        left: 12%;
+        top: 10rpx;
+        &:nth-child(2){
+          left: 45%;
+        }
+        &:nth-child(3){
+          left: 77%;
+        }
+        &:after{
+          content: '';
+          border-top: 10rpx solid #5ba8ff;
+          border-bottom: 10rpx solid transparent;
+          border-right: 10rpx solid transparent;
+          border-left: 10rpx solid transparent;
+          position: absolute;
+          left: 30rpx;
+          bottom: -18rpx;
+        }
+      }
+    }
+  }
+  .arrow{
+    border-top: 8rpx solid #999;
+    border-left: 8rpx solid  transparent;
+    border-right: 8rpx solid transparent;
+    border-bottom: 8rpx solid transparent;
+    position: absolute;
+    bottom: 20rpx;
+    right: 10rpx;
+  }
+    .batch{
+    width: 214rpx!important;
+  }
+}
+</style>

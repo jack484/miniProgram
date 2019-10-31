@@ -1,0 +1,89 @@
+<template>
+    <view class="index">
+        <view class="index-bg">
+            <image wx:if="{{imageUrl}}" class="bg-icon" src="{{imageUrl}}/img/yd/xingge/bg_interest.png"></image>
+        </view>
+        <view class="index-main">
+            <view class="main-box"><text class="textColor">[报考大学]</text>以世界著名的性格测试理论为基础，结合学生实际心理状况和高校专业特征，精心编写了一套以性格找专业的测试系统，帮助学生发现最匹配自己性格的大学专业。更多测试与专业信息请下载<text class="textColor">报考大学APP</text>进行体验使用</view>
+            <view><text class="limitColor">[限时活动]</text>现在参与测试，还可以进行幸运大抽奖哦</view>
+        </view>
+        <view class="index-btn" bindtap='jumpToMyTest'>
+            <image wx:if="{{imageUrl}}" src="{{imageUrl}}/img/yd/xingge/beginBtn.png"></image>
+            <text>开始测试</text>
+        </view>
+    </view>
+</template>
+
+
+<script>
+  import wepy from 'wepy'
+  import api from '../api/api'
+
+  export default class interestIndex extends wepy.page {
+    config = {
+      navigationBarTitleText: '测性格找专业'
+    }
+    data = {
+      imageUrl: api.imageUrl
+    }
+    onLoad(opt) { }
+    methods = {
+    // 跳转开始答题页面
+      jumpToMyTest() {
+        wepy.navigateTo({ url: '/pages/interestTest' })
+      }
+    }
+  }
+</script>
+
+<style lang="less" scoped>
+  .index {
+    width: 750rpx;
+    height: 100vh;
+    background-color: #f2f4f7;
+    overflow: hidden;
+    &-bg {
+      width: 720rpx;
+      height: 494rpx;
+      margin: 80rpx 15rpx 50rpx;
+      .bg-icon {
+        width: 100%;
+        height: 100%;
+      }
+    }
+    &-main {
+      color: #696969;
+      font-size: 24rpx;
+      width: 635rpx;
+      line-height: 40rpx;
+      margin-left: 65rpx;
+      .main-box{
+        margin-bottom: 48rpx;
+        .textColor {
+          color: #5ba8ff;
+        }
+      }    
+      .limitColor {
+        color: #f16464;
+      }
+    }
+    &-btn{
+      width: 710rpx;
+      height: 140rpx;
+      position: fixed;
+      bottom:20rpx;
+      left: 20rpx;
+      image{
+        width:100%;
+        height: 100%;
+      }
+      text{
+        color:#fff;
+        position:absolute;
+        font-size: 30rpx;
+        left:292rpx;
+        top:37rpx;
+      }
+    }
+  }
+</style>

@@ -1,0 +1,160 @@
+{
+	"description": "A WePY project",
+	"setting": {
+		"urlCheck": false,
+		"es6": false,
+		"postcss": false,
+		"minified": false,
+		"newFeature": true
+	},
+	"compileType": "miniprogram",
+	"appid": "wx2774635e28c1f0ec",
+	"projectname": "my-project",
+	"miniprogramRoot": "./dist",
+	"condition": {
+		"search": {
+			"current": -1,
+			"list": []
+		},
+		"conversation": {
+			"current": -1,
+			"list": []
+		},
+		"plugin": {
+			"current": -1,
+			"list": []
+		},
+		"game": {
+			"list": []
+		},
+		"miniprogram": {
+			"current": 8,
+			"list": [
+				{
+					"id": 0,
+					"name": "me",
+					"pathName": "pages/me",
+					"query": ""
+				},
+				{
+					"id": 1,
+					"name": "index",
+					"pathName": "pages/authorize_new",
+					"query": "fromPage=index&shareId=1111234",
+					"scene": "1005"
+				},
+				{
+					"id": 2,
+					"name": "subject",
+					"pathName": "pages/authorize_new",
+					"query": "fromPage=subject&kq=15&kqname=广东&shareId=11234",
+					"scene": "1007"
+				},
+				{
+					"id": 3,
+					"name": "news",
+					"pathName": "pages/authorize_new",
+					"query": "current=3&kq=12&kqname=浙江&fromPage=news&shareId=1133",
+					"scene": "1007"
+				},
+				{
+					"id": -1,
+					"name": "search",
+					"pathName": "pages/searchSchool",
+					"query": ""
+				},
+				{
+					"id": 5,
+					"name": "newsDetails",
+					"pathName": "pages/authorize_new",
+					"query": "fromPage=newsDetails&pageTitle=3&newid=4603&type=new&kq=12&shareId=111",
+					"scene": "1007"
+				},
+				{
+					"id": -1,
+					"name": "subjectDetails",
+					"pathName": "pages/subjectDetails",
+					"query": ""
+				},
+				{
+					"id": -1,
+					"name": "myCollection",
+					"pathName": "pages/myCollection",
+					"query": ""
+				},
+				{
+					"id": 8,
+					"name": "schoolDetails",
+					"pathName": "pages/authorize_new",
+					"query": "name=清华大学&cid=3&is211=1&is985=1&level=985&img=rrrr&typeid=综合&isDoubleA=1&kq=1&kqname=北京&fromPage=schoolDetails&shareId=124",
+					"scene": "1001"
+				},
+				{
+					"id": -1,
+					"name": "schoolfellow",
+					"pathName": "pages/schoolfellow",
+					"query": ""
+				},
+				{
+					"id": -1,
+					"name": "scoreDetails",
+					"pathName": "pages/scoreDetails",
+					"query": ""
+				},
+				{
+					"id": -1,
+					"name": "scholarship",
+					"pathName": "pages/scholarship",
+					"query": ""
+				},
+				{
+					"id": -1,
+					"name": "scoreDetails",
+					"pathName": "pages/scoreDetails",
+					"query": ""
+				},
+				{
+					"id": -1,
+					"name": "search2.0",
+					"pathName": "pages/search",
+					"query": ""
+				},
+				{
+					"id": 14,
+					"name": "subjectDetails",
+					"pathName": "pages/authorize_new",
+					"query": "code=1101&pageTitle=柔柔弱弱&kq=15&kqname=广东&fromPage=subjectDetails&shareId=12324",
+					"scene": "1007"
+				},
+				{
+					"id": 15,
+					"name": "interest",
+					"pathName": "pages/authorize_new",
+					"query": "fromPage=interestIndex&shareId=243545",
+					"scene": "1007"
+				},
+				{
+					"id": 16,
+					"name": "lucky",
+					"pathName": "pages/authorize_new",
+					"query": "fromPage=interestIndex&shareId=122344",
+					"scene": "1001"
+				},
+				{
+					"id": -1,
+					"name": "luckyDetail",
+					"pathName": "pages/luckyDetail",
+					"query": "",
+					"scene": "1001"
+				},
+				{
+					"id": 18,
+					"name": "phone",
+					"pathName": "pages/phone",
+					"query": "shareId=3455772",
+					"scene": "1007"
+				}
+			]
+		}
+	}
+}

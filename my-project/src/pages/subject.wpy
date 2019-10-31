@@ -1,0 +1,320 @@
+<template>
+  <view class="subject">
+    <view class="subject-tab">
+      <view class="searchSubject" bind:tap='jumpToSearchSub'>
+        <image src='../icon/search_icon_white.png' class="searchSubject-icon"/>
+      </view>
+    </view>
+      <view class="tabs">
+        <view class="tabs-head">
+          <block wx:for="{{ tabsList }}" wx:key="index">
+          <view class="tabs-item {{ tabsActiveIndex == index ? 'active' : '' }}" bind:tap='switchTabsHandle( {{index}} )'>
+            {{ item }}
+          </view>
+          </block>
+        </view>
+        <view class="tabs-body">
+          <scroll-view scroll-y="true" style="white-space: nowrap;width: 100%;height:100%;position:absolute; top:120rpx; left:0rpx; " bindscrolltolower='loadOtherSchool'>
+
+          <view class="tabs-content">
+            <block wx:for='{{firstMenu}}' wx:key='index' wx:for-item='item'>
+              <!-- 一级菜单 -->
+              <view class="firstMenu" catch:tap='showSecondMenu({{index}},{{item.code}})' data-index='{{index}}'>
+                <image src='../icon/gray_arrow_rignt@3x.png' class="arrow_right" wx:if='{{!arrowf[index]}}'/>
+                <image src='../icon/gray_arrow_down@3x.png' class="arrow_down" wx:if='{{arrowf[index]}}'/>
+                <text>{{ item.name }}</text>
+                <block wx:for="{{secondMenu[item.code]}}" wx:key='secondIndex' wx:for-item='second' wx:for-index='secondIndex' wx:if='{{item.flag}}'>
+                  <!--  -->
+                  <!-- 二级菜单 -->
+                  <view class="secondMenu {{item.flag ? 'secondActive' : ''}}" catch:tap='showThirdMenu({{secondIndex}},{{item.code}})' data-index='{{secondIndex}}'>
+                    <!-- 这个背景图有问题 -->
+                    <image src='../icon/gray_arrow_rignt@3x.png' class="arrow_right"/>
+                    <text class="secondMenu-title">{{second.name}}</text>
+                    <text class="secondMenu-total">{{thirdMenu[second.code].length}}</text>
+                    <view class="secondMenu-placeholderBg"></view>
+                    <block wx:for='{{thirdMenu[second.code]}}' wx:key='thirdIndex' wx:for-item='third'  wx:for-index='thirdIndex' wx:if='{{second.flag}}'>
+                      <!-- wx:if='{{second.flag}}' -->
+                      <!-- 三级菜单 -->
+                      <view class="thirdMenu" catch:tap='jumpToSubjectDerails({{thirdIndex}},{{second.code}})'>
+                        {{third.name}}
+                      </view>
+                    </block>
+                  </view>
+                </block>
+              </view>
+            </block>
+          </view>
+        </scroll-view>
+        </view>
+      </view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+
+import api from '../api/api'
+
+export default class Subject extends wepy.page {
+  onLoad() {
+    this.uid = wepy.getStorageSync('uid')
+    var kq = wepy.getStorageSync('kq')
+    var KQname = wepy.getStorageSync('KQname')
+    if (!kq || !KQname) {
+      wepy.setStorageSync('kq', 15)
+      wepy.setStorageSync('KQname', '广东')
+    }
+    this.sendSubReq(1)
+  }
+  config = {
+    'component': true,
+    'usingComponents': {
+      'i-tabs': '../components/iView-components/tabs/index',
+      'i-tab': '../components/iView-components/tab/index'
+    }
+  }
+  data = {
+    current: '1',
+    tabsActiveIndex: 0,
+    tabsList: ['本科', '专科'],
+    firstMenu: [],
+    secondMenu: {},
+    thirdMenu: {},
+    isShowSecond: [],
+    isShowThird: false,
+    theSecondMenuIndex: -1,
+    subjectDetailsInfo: {},
+    thirdCode: '',
+    showArrow: true,
+    arrowf: [],
+    kq: '',
+    kqname: '',
+    uid: ''
+  }
+  methods = {
+    // 暂时没用
+    handleChange ({ detail }) {
+      this.current = detail.key
+    },
+    // tab切换
+    switchTabsHandle(index) {
+      // 根据索引值的不同，获取不同menuData的数据，发送不同请求
+      if (index === 0) {
+        this.sendSubReq(1)
+        for (let i = 0; i < this.arrowf.length; i++) {
+          this.arrowf[i] = false
+        }
+      } else {
+        this.sendSubReq(2)
+        for (let i = 0; i < this.arrowf.length; i++) {
+          this.arrowf[i] = false
+        }
+      }
+      console.log(index)
+      // 点击切换索引值，更新到 tabsActiveIndex 中
+      this.tabsActiveIndex = index
+    },
+    // 显示二级菜单
+    showSecondMenu(index, code) {
+      console.log(code, '二级')
+      this.theSecondMenuIndex = index
+      console.log(index)
+      for (let i = 0; i < this.firstMenu.length; i++) {
+        if (index === i) {
+          this.firstMenu[i].flag = !this.firstMenu[i].flag
+          this.arrowf[i] = !this.arrowf[i]
+        }
+      }
+    },
+    // 显示三级菜单
+    showThirdMenu(index, code) {
+      // 开关三级菜单
+      // this.secondMenu[this.firstMenu[this.theSecondMenuIndex].code][index].flag = !this.secondMenu[this.firstMenu[this.theSecondMenuIndex].code][index].flag
+      this.secondMenu[code][index].flag = !this.secondMenu[code][index].flag
+      // 将二级目录的code存起来
+      // this.thirdCode = this.secondMenu[this.firstMenu[this.theSecondMenuIndex].code][index].code
+    },
+
+    // 跳转到专业详情
+    jumpToSubjectDerails(index, secondcode) {
+      this.subjectDetailsInfo = this.thirdMenu[secondcode][index]
+      console.log(this.subjectDetailsInfo)
+      // 到时还要携带对应的专业code
+      wepy.navigateTo({ url: `/pages/subjectDetails?pageTitle=${this.subjectDetailsInfo.name}&code=${this.subjectDetailsInfo.code}` })
+    },
+    // 跳转到搜索页面
+    jumpToSearchSub() {
+      wepy.navigateTo({ url: `/pages/searchSubject` })
+    }
+  }
+  onShareAppMessage(res) {
+    return {
+      title: '全国专业大全',
+      path: `/pages/authorize_new?fromPage=subject&kq=${this.kq}&kqname=${this.kqname}&shareId=${this.uid}`
+    }
+  }
+  // 发送专业大全请求
+  sendSubReq(bz) {
+    wepy.showLoading({
+      title: '加载专业大全',
+      mask: true
+    }).then(res => {
+      api.getAllSubject({
+        data: {bz: bz}
+      }).then(res => {
+        console.log(res, '本科列表')
+        if (res.code === '200') {
+          this.firstMenu = res.extraData.dalei
+          this.secondMenu = res.extraData.lei
+          this.thirdMenu = res.extraData.major
+          this.$apply()
+          wepy.hideLoading()
+        }
+      }).then(() => {
+        // 为数据添加控制展开开关
+        if (!this.arrowf) {
+          this.arrowf = []
+        }
+        for (let i = 0; i < this.firstMenu.length; i++) {
+          this.firstMenu[i].flag = false
+          this.arrowf.push(this.firstMenu[i].flag)
+          for (let j = 0; j < this.secondMenu[this.firstMenu[i].code].length; j++) {
+            this.secondMenu[this.firstMenu[i].code][j].flag = false
+          }
+        }
+      })
+    })
+  }
+}
+</script>
+<style lang="less" scoped>
+.subject{
+  .subject-tab{
+    height: 110rpx;
+    width: 750rpx;
+    background-color: #5ba8ff;
+    position: relative;
+    .searchSubject{
+      width: 140rpx;
+      height: 70rpx;
+      position: absolute;
+      top: 20rpx;
+      right: 0rpx;
+      &-icon{
+        width: 40rpx;
+        height: 40rpx;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%,-50%);
+      }
+    }
+  }
+  .tabs{
+    width: 750rpx;
+    // position: relative;
+    .tabs-head {
+      width: 400rpx;
+      height: 70rpx;
+      background-color: #fff;
+      position: absolute;
+      top: 20rpx;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      border-radius: 10rpx;
+      padding: 4rpx;
+      color: #fff;
+      .tabs-item {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        font-size: 34rpx;
+        background-color: #5ba8ff;
+        border-radius: 5rpx;
+      }
+      .active {
+        color: #5ba8ff;
+        font-weight: 400;
+        background-color: #fff;
+        border:5rpx solid #fff;
+        border-radius: 10rpx;
+      }
+    }
+    .tabs-body {
+      // position: absolute;
+      // left: 0;
+      // top: 110rpx;
+      // margin-top: 20rpx;
+      z-index: 3;
+      .tabs-content{
+        font-size: 28rpx;
+        .firstMenu{
+          line-height: 90rpx;
+          width: 750rpx;
+          color: #333;
+          padding-left: 90rpx;
+          box-sizing: border-box;
+          border-bottom: 1rpx solid #dcdcdc;
+          position: relative;
+          .arrow_right{
+            width: 20rpx;
+            height: 25rpx;
+            position: absolute;
+            top: 35rpx;
+            left: 40rpx;
+          }
+          .arrow_down{
+            width: 30rpx;
+            height: 20rpx;
+            position: absolute;
+            top: 35rpx;
+            left: 35rpx;
+          }
+          .secondMenu{
+            line-height: 100rpx;
+            width: 610rpx;
+            margin-left: 50rpx;
+            position: relative;
+            .arrow_right{
+              width: 20rpx;
+              height: 25rpx;
+              position: absolute;
+              top: 40rpx;
+              left: -40rpx;
+            }
+            &-total{
+              position: absolute;
+              right: 20rpx;
+              top: 0;
+              font-size: 24rpx;
+              color: #333;
+            }
+            &-placeholderBg{
+              background-color: #f5f5f5;
+              width: 140rpx;
+              height: 100rpx;
+              position: absolute;
+              top: 0;
+              left: -138rpx;
+            }
+            .thirdMenu{
+              color: #999;
+              background-color: #fff;
+              height: 100rpx;
+              line-height: 100rpx;
+              width: 600rpx;
+              // padding-left: 50rpx;
+              border-bottom: 1rpx solid #dcdcdc;
+            }
+          }
+          .secondActive{
+            background-color: #f5f5f5;
+          }
+        }
+      }
+    }
+  }
+}
+</style>

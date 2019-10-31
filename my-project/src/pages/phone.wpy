@@ -1,0 +1,307 @@
+<template>
+  <view class="phone">
+    <view class="phone-box">
+      <view class="phone-title">请绑定手机号</view>
+      <view class="phone-main">
+        <view class="phone-des">
+          <view class="main-des">尊敬的<text>用户微信ID:</text></view>
+          <view class="main-des">根据国家实名制认证的相关要求，您需要绑定手机号，才能继续进行操作。</view>
+          <view class="main-des">绑定成功后，可直接用手机号登录报考大学APP。</view>
+        </view>
+        <view class="input-box">
+          <view class="inputs {{inputData['1'].active? 'active':''}}">
+            <image wx:if="{{imageUrl}}" src="{{imageUrl}}/img/yd/xingge/icon-phone{{inputData['1'].active? '-active':''}}.png" class="icon"></image>
+            <input type="number" placeholder="绑定的手机号" placeholder-class="placeholder" value="{{inputData['1'].value}}" bindfocus="bindfocusFn" bindblur="bindblurFn" data-id="1"></input>
+            <image wx:if="{{inputData['1'].active}}" src="{{imageUrl}}/img/yd/xingge/close.png" class="close" bindtap="clearValue(1)"></image>
+          </view>
+          <view class="inputs {{inputData['2'].active? 'active':''}}">
+            <image wx:if="{{imageUrl}}" src="{{imageUrl}}/img/yd/xingge/icon-code{{inputData['2'].active? '-active':''}}.png" class="icon"></image>
+            <input type="text" placeholder="右侧验证码" placeholder-class="placeholder" value="{{inputData['2'].value}}" style="width:454rpx;" bindfocus="bindfocusFn" bindblur="bindblurFn" data-id="2"></input>
+            <!-- <image wx:if="{{inputData['2'].active}}" src="{{imageUrl}}/img/yd/xingge/icon-code.png" style="right:190rpx;" class="close" bindtap="clearValue(2)"></image> -->
+            <image src="{{imageCode}}" class="yzm" bindtap="changeImage"></image>
+          </view>
+          <view class="inputs {{inputData['3'].active? 'active':''}}">
+            <image wx:if="{{imageUrl}}" src="{{imageUrl}}/img/yd/xingge/icon-code{{inputData['3'].active? '-active':''}}.png" class="icon"></image>
+            <input type="text"  placeholder="短信验证码" placeholder-class="placeholder" value="{{inputData['3'].value}}" style="padding-right:190rpx;" bindfocus="bindfocusFn" bindblur="bindblurFn" data-id="3"></input>
+            <!-- <image wx:if="{{inputData['3'].active}}" src="{{imageUrl}}/img/yd/xingge/icon-code.png" class="close" bindtap="clearValue(3)"></image> -->
+            <text class="phone-code" bindtap="getPhoneCode">获取验证码</text>
+          </view>
+          <view class="inputs {{inputData['4'].active? 'active':''}}">
+            <image wx:if="{{imageUrl}}" src="{{imageUrl}}/img/yd/xingge/icon-password{{inputData['4'].active? '-active':''}}.png" class="icon"></image>
+            <input type="text" password placeholder="登录密码" placeholder-class="placeholder" value="{{inputData['4'].value}}" bindfocus="bindfocusFn" bindblur="bindblurFn" data-id="4"></input>
+            <image wx:if="{{inputData['4'].active}}" src="{{imageUrl}}/img/yd/xingge/close.png" class="close" bindtap="clearValue(4)"></image>
+          </view>
+        </view>
+        <view class="phone-btn" bindtap="completePhone">
+         <image wx:if="{{imageUrl}}" src="{{imageUrl}}/img/yd/xingge/testBtn.png"></image>
+         <text>完成绑定</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import api from '../api/api'
+
+export default class Phone extends wepy.page {
+  config = {
+    navigationBarTitleText: '绑定手机',
+    navigationBarBackgroundColor: '#fff',
+    navigationBarTextStyle: 'black'
+  }
+  data = {
+    imageUrl: api.imageUrl,
+    inputData: {
+      '1': {value: '', active: false},
+      '2': {value: '', active: false},
+      '3': {value: '', active: false},
+      '4': {value: '', active: false}
+    },
+    number: 1,
+    imageCode: '',
+    cookieImage: ''
+  }
+  onLoad() {
+    this.getimageCode()
+  }
+  methods = {
+    // input事件
+    bindfocusFn(e) {
+      var id = e.currentTarget.dataset.id
+      this.inputData[id].active = true
+    },
+    bindblurFn(e) {
+      console.log(e)
+      var id = e.currentTarget.dataset.id
+      var val = e.detail.value
+      this.inputData[id].active = false
+      this.inputData[id].value = val
+    },
+    clearValue(id) {
+      this.inputData[id].value = ''
+    },
+    // 更新验证码
+    changeImage() {
+      console.log('更新验证码')
+      this.getimageCode()
+    },
+    // 手机验证码
+    getPhoneCode() {
+      console.log('手机短信验证码')
+      // 验证手机号码
+      var result = this.validatemobile(this.inputData[1].value)
+      if (result === true) {
+        console.log('检测该号码是否注册过')
+        this.isPhoneZc(this.inputData[1].value)
+      }
+    },
+    // 完成绑定
+    completePhone() {
+      var self = this
+      // 发送请求
+      api.bindPhone({
+        method: 'POST',
+        data: {
+          pwd: self.inputData[4].value,
+          phone: self.inputData[1].value,
+          verifycode: self.inputData[3].value
+        }
+      }).then(res => {
+        wepy.showToast({
+          title: res.message,
+          icon: 'none',
+          duration: 1000
+        })
+        if (res.code === '200') {
+          wepy.setStorageSync('bindPhone', self.inputData[1].value)
+          setTimeout(() => {
+            wepy.navigateTo({url: '/pages/lucky'})
+          }, 1000)
+        }
+      })
+      console.log('提交')
+    }
+  }
+  validatemobile(mobile) {
+    var reg = /^1[3456789]\d{9}$/
+    if (!(reg.test(mobile))) {
+      wepy.showToast({
+        title: '手机号码格式不正确',
+        icon: 'none',
+        duration: 1000
+      })
+      return false
+    }
+    return true
+  }
+  // 获取image验证码
+  getimageCode() {
+    api.getImageCode().then(res => {
+      this.imageCode = res.data.extraData
+      this.$apply()
+    })
+  }
+  // 手机号是否已注册
+  async isPhoneZc(phone) {
+    await api.isPhoneZhuce({
+      method: 'POST',
+      data: {
+        phone: phone
+      }
+    }).then(res => {
+      if (res.code === '200') {
+        // 手机号可用
+        var _phone = phone
+        var code = this.inputData[2].value
+        var dev = wepy.getStorageSync('dev')
+        this.sendMessage(_phone, code, dev)
+      } else {
+        wepy.showToast({
+          title: res.message,
+          icon: 'none',
+          duration: 1000
+        })
+      }
+    })
+  }
+  // 发送手机验证码
+  async sendMessage(phone, code, dev) {
+    // console.log(phone, code, dev)
+    await api.sendPhoneMsg({
+      method: 'POST',
+      data: {
+        dev: dev,
+        pt: 1,
+        phone: phone,
+        tpcode: code,
+        action: 3
+      }
+    }).then(res => {
+      console.log(res)
+      if (res.code === '200') {
+        // 获取验证码成功
+      }
+      wepy.showToast({
+        title: res.message,
+        icon: 'none',
+        duration: 1000
+      })
+    })
+  }
+}
+</script>
+
+<style lang="less" scoped>
+  .phone{
+    width: 750rpx;
+    height: 100vh;
+    background-color: #f2f4f7;
+    padding-top: 3vh;
+    box-sizing: border-box;
+    &-box{
+      width: 690rpx;
+      margin: 0 auto;
+      height: 90vh;
+      background-color: #fff;
+      box-shadow: 0rpx 10rpx 20rpx #eee;
+      .phone-title{
+        color: #333;
+        font-size: 36rpx;
+        border-bottom: 1px solid #eee;
+        padding: 0 40rpx;
+        height: 10vh;
+        line-height: 10vh;
+        font-weight: 700;
+      }
+      .phone-main{
+        padding: 4vh 40rpx 0;
+        .phone-des{
+          height: 20vh;
+          .main-des{
+            color: #555;
+            font-size: 26rpx;
+            margin-bottom: 2vh;
+            line-height: 40rpx;
+            text{
+              color: #5ba8ff;
+            }
+          }
+        }
+        .input-box{
+          height: 42vh;
+          input{
+            background-color: #f6f8ff;
+            border-radius: 10rpx;
+            height: 90rpx;
+            box-sizing: border-box;
+            padding-left: 110rpx;
+            padding-right: 90rpx;
+            font-size: 30rpx;
+          }
+          .inputs{
+            position: relative;
+            margin-bottom: 32rpx;
+            .icon{
+              width: 46rpx;
+              height:46rpx;
+              position: absolute;
+              left: 30rpx;
+              top:20rpx;
+              z-index: 5;
+            }
+            .close{
+              width: 34rpx;
+              height:34rpx;
+              position: absolute;
+              right: 30rpx;
+              top:30rpx;
+              z-index: 5;
+            }
+            .yzm{
+              width: 110rpx;
+              height: 47rpx;
+            //   border: 1px solid red;
+              position: absolute;
+              z-index: 5;
+              top:20rpx;
+              right: 10rpx;
+            }
+            .phone-code{
+              color: #5ba8ff;
+              font-size: 26rpx;
+              position: absolute;
+              z-index: 5;
+              top:30rpx;
+              right: 20rpx;
+            }
+            &.active{
+              input{
+                border:1px solid #5ba8ff;
+              }
+            }
+          }
+        }
+        .phone-btn{
+          width: 410rpx;
+          height: 140rpx;
+          margin: 0 auto;
+          position: relative;
+          image{
+            width: 410rpx;
+            height: 140rpx;
+          }
+          text{
+            position: absolute;
+            top:40rpx;
+            left: 145rpx;
+            color: #fff;
+            font-size: 30rpx;
+            z-index: 5;
+          }
+        }
+      }
+    }
+  }
+</style>

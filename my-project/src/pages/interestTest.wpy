@@ -1,0 +1,283 @@
+<template>
+  <view class="interest">
+    <scroll-view scroll-y class="scroll-box" scroll-top="{{scrolltop}}" scroll-with-animation>
+      <view class="begin-tips">
+        <view wx:if="{{beginTips > 0}}" class="wx-box">
+          <view class="boxContent">
+            <text>欢迎来到“报考大学 - 测性格找专业”专区</text>
+          </view>
+        </view>
+        <view wx:if="{{beginTips > 1}}" class="wx-box">
+          <view class="boxContent">
+            <text>本套测试题一共10题，测试结果仅供参考</text>
+          </view>
+        </view>
+        <view wx:if="{{beginTips > 2}}" class="wx-box">
+          <view class="boxContent">
+            <text>要根据自己的第一印象答题哦</text>
+          </view>
+        </view>
+      </view>
+      <view class="begin-box" wx:if="{{beginTips >4}}">
+        <view class="user-box">
+          <text>开始测试</text>
+        </view>
+        <view wx:for="{{askList}}" wx:key="key" wx:for-index="askIndex" wx:for-item="askItem" wx:if="{{(askIndex) <= testTips}}">
+          <view class="wx-box">
+            <view class="boxContent">
+              <text>{{askItem.ask}}</text>
+              <image src="{{imageUrl}}{{askItem.img}}" wx:if="{{askItem.img}}"></image>
+            </view>
+          </view>
+          <view class="user-box" wx:if="{{askItem.flag}}">
+            <text>{{answer[askIndex].answer[askItem.flag-1].code}}.{{answer[askIndex].answer[askItem.flag-1].text}}</text>
+          </view>
+        </view>
+        <view class="wx-box" wx:if="{{beginTips == 6}}" style="margin-bottom:100rpx">
+          <view class="boxContent">
+            <text>结果正在计算中......</text>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+    <view class="interest-btn" wx:if="{{beginTips == 4}}" bindtap='startTest'>
+      <image wx:if="{{imageUrl}}" src="{{imageUrl}}/img/yd/xingge/testBtn.png"></image>
+      <text>开始测试</text>
+    </view>
+    <view class="interest-choose" wx:if="{{beginTips == 5}}">
+      <text wx:for="{{answer[testTips].answer}}" wx:for-index="answerIndex" wx:key="key" wx:for-item="answerItem" data-index="{{answerIndex + 1}}" data-num="{{testTips+1}}" data-code="{{answerItem.code}}" bindtap="chooseAnswer">{{answerItem.code}}.{{answerItem.text}}</text>
+    </view>
+ </view>
+</template>
+
+
+<script>
+  import wepy from 'wepy'
+  import api from '../api/api'
+  export default class interestTest extends wepy.page {
+    config = {
+      navigationBarTitleText: '测性格找专业',
+      navigationBarBackgroundColor: '#fff',
+      navigationBarTextStyle: 'black'
+    }
+    data = {
+      imageUrl: api.imageUrl,
+      beginTips: 0,
+      timer: '',
+      testTips: 0,
+      scrolltop: 0,
+      share_uid: '', // 分享者id
+      askList: [
+        {askId: 1, ask: '1.你认为一朵花涂什么颜色最好？', flag: false},
+        {askId: 2, ask: '2.在众人面前，你能明白地表示自己的意见吗？', flag: false},
+        {askId: 3, ask: '3.如果在同一时段中，电视正播放三种节目，你会选看那一种？', flag: false},
+        {askId: 4, ask: '4.如果在一个月内要你扮演动物的角色，你会选择以下的哪一种？', flag: false},
+        {askId: 5, ask: '5.你会跟讨厌的人谈话吗？', flag: false},
+        {askId: 6, ask: '6.如果能重新选择的话，你希望身为男人还是女人？', flag: false},
+        {askId: 7, ask: '7.以下的人物中，你喜欢哪一位？', flag: false},
+        {askId: 8, ask: '8.如果你在港口看到船，会联想到什么呢？', flag: false},
+        {askId: 9, ask: '9.以签字笔乱涂，你会涂哪一种形状？', img: '/img/yd/xingge/pic.png', flag: false},
+        {askId: 10, ask: '10.你积极地参加社团活动吗？', flag: false}
+      ],
+      answer: [
+        {answerId: 1, answer: [{code: 'A', text: '粉红色'}, {code: 'B', text: '黄色'}, {code: 'C', text: '青色'}]},
+        {answerId: 2, answer: [{code: 'A', text: '能'}, {code: 'B', text: '不能'}, {code: 'C', text: '看情况'}]},
+        {answerId: 3, answer: [{code: 'A', text: '歌唱节目'}, {code: 'B', text: '连续剧'}, {code: 'C', text: '猜谜节目'}]},
+        {answerId: 4, answer: [{code: 'A', text: '狗'}, {code: 'B', text: '猫'}, {code: 'C', text: '小鸟'}]},
+        {answerId: 5, answer: [{code: 'A', text: '能'}, {code: 'B', text: '不能'}, {code: 'C', text: '看情况'}]},
+        {answerId: 6, answer: [{code: 'A', text: '男人'}, {code: 'B', text: '女人'}, {code: 'C', text: '两者皆可'}]},
+        {answerId: 7, answer: [{code: 'A', text: '孙中山'}, {code: 'B', text: '爱因斯坦'}, {code: 'C', text: '歌德'}]},
+        {answerId: 8, answer: [{code: 'A', text: '海外旅行'}, {code: 'B', text: '再见'}, {code: 'C', text: '贸易'}]},
+        {answerId: 9, answer: [{code: 'A', text: 'A'}, {code: 'B', text: 'B'}, {code: 'C', text: 'C'}]},
+        {answerId: 10, answer: [{code: 'A', text: '参加'}, {code: 'B', text: '不参加'}, {code: 'C', text: '偶尔参加'}]}
+      ],
+      resultData: {},
+      dev: ''
+    }
+    onLoad() {
+      var share = wepy.getStorageSync('share')
+      if (share !== '') {
+        this.share_uid = share.shareId
+      }
+      this.dev = wepy.getStorageSync('dev')
+      this.$apply()
+    }
+    onReady() {
+      this.beginTimer()
+    }
+    methods = {
+      // 开始测试
+      startTest() {
+        var that = this
+        setTimeout(() => {
+          that.beginTips = 5
+          that.$apply()
+        }, 200)
+      },
+      // 选择答案
+      chooseAnswer(event) {
+        var that = this
+        // 拿取数据
+        var num = event.currentTarget.dataset.num
+        var result = event.currentTarget.dataset.code
+        var chooseIndex = event.currentTarget.dataset.index
+        // console.log(num, result, chooseIndex)
+        this.resultData[num] = result
+        console.log(this.resultData)
+        // 更新数据
+        this.askList[this.testTips].flag = chooseIndex
+        // 处理判断
+        this.testTips ++
+        if (this.testTips >= 10) {
+          this.beginTips = 6
+          // 提交代码
+          api.setInterestResult({
+            method: 'POST',
+            data: {
+              answer: JSON.stringify(that.resultData),
+              share_uid: that.share_uid,
+              dev: that.dev
+            }
+          }).then(res => {
+            console.log(res, '提交')
+            if (res.code === '200') {
+              setTimeout(res => {
+                wepy.navigateTo({ url: '/pages/interestResult' })
+              }, 500)
+            }
+          })
+        }
+        this.$apply()
+        // 位置
+        this.scrollBottom()
+      }
+    }
+    //  自定义方法
+    beginTimer() {
+      var that = this
+      this.timer = setInterval(function() {
+        that.beginTips = that.beginTips + 1
+        that.$apply()
+        if (that.beginTips >= 4) {
+          console.log('定时器停止')
+          clearInterval(that.timer)
+        }
+      }, 800)
+    }
+    // 滚动
+    scrollBottom() {
+      this.scrolltop = 200 * this.testTips
+    }
+  }
+</script>
+
+<style lang="less" scoped>
+    .interest {
+        width: 750rpx;
+        background-color: #f2f4f7;
+        height: 100vh;
+        box-sizing: border-box;
+        .scroll-box {
+            width: 750rpx; 
+            height: 100vh;
+            padding: 0rpx 25rpx 150rpx;
+            box-sizing: border-box;
+            .begin-tips {
+              padding-top: 30rpx;
+            }
+            .wx-box {
+                margin-bottom: 30rpx;
+                padding-left: 10rpx;
+                .boxContent {
+                    padding: 30rpx 35rpx;
+                    border-radius: 20rpx;
+                    background-color: #fff;
+                    border: 1px solid #eee;
+                    font-size: 26rpx;
+                    color: #333;
+                    line-height: 40rpx;
+                    display: inline-block;
+                    position: relative;
+                    &:before {
+                        content: '';
+                        display: block;
+                        position: absolute;
+                        left: -10rpx;
+                        top: 1rpx;
+                        border: 20rpx solid #fff;
+                        border-color: #fff transparent transparent transparent;
+                    }
+                    image{
+                    width: 610rpx;
+                    height: 61rpx;
+                    display: inline-block;
+                  }
+                } 
+            }
+            .user-box {
+                margin-bottom: 30rpx;
+                padding-right: 10rpx;
+                overflow: hidden;
+                text {
+                    float: right;
+                    padding: 30rpx 35rpx;
+                    border-radius: 20rpx;
+                    background-color: #85beff;
+                    border: 1px solid #eee;
+                    font-size: 26rpx;
+                    color: #fff;
+                    line-height: 40rpx;
+                    display: inline-block;
+                    position: relative;
+                    &:after {
+                        content: '';
+                        display: block;
+                        position: absolute;
+                        right: -10rpx;
+                        top: 1rpx;
+                        border: 20rpx solid #85beff;
+                        border-color: #85beff transparent transparent transparent;
+                    }
+                }
+            }
+        }
+        .interest-btn {
+            width: 410rpx;
+            height: 140rpx;
+            position: fixed;
+            bottom: 10rpx;
+            left: 170rpx;
+            image {
+                width: 100%;
+                height: 100%;
+            }
+            text {
+                color: #fff;
+                position: absolute;
+                font-size: 30rpx;
+                left: 142rpx;
+                top: 37rpx;
+            }
+        }
+        .interest-choose {
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            height: 130rpx;
+            width: 750rpx; // display: flex;
+            text {
+                // flex:1;
+                font-size: 26rpx;
+                margin-left: 30rpx;
+                width: 210rpx;
+                height: 90rpx;
+                display: inline-block;
+                text-align: center;
+                line-height: 90rpx;
+                background-color: #fff;
+                border-radius: 10rpx;
+                border: 1px solid #eee;
+            }
+        }
+    }
+</style>

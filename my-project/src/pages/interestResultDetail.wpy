@@ -1,0 +1,219 @@
+<template>
+  <view class="interest">
+    <!-- 有记录 -->
+    <block wx:if="{{!isResult}}">
+      <view class="interest-timer" wx:if="{{from}}">保存于：{{time}}</view>
+      <view class="interest-header">
+        <image  wx:if="{{imageUrl}}" src="{{imageUrl}}/img/yd/xingge/testResult.png" class="bg"></image>
+        <view class="interest-title">
+          <image  wx:if="{{resultData.pin}}" src="{{imageUrl}}/img/yd/xingge/{{resultData.pin}}_left.png" class="image-left"></image>
+            <view class="interest-t">
+              <view>{{resultData.title}}</view>
+              <text>人格</text>
+            </view>
+          <image  wx:if="{{resultData.pin}}" src="{{imageUrl}}/img/yd/xingge/{{resultData.pin}}_right.png" class="image-right"></image>
+        </view>
+      </view>
+      <view class="interest-result">
+        <text class="textColor">性格分析</text>
+        <view>{{resultData.xingg}}</view>
+      </view>
+      <view class="interest-result">
+        <text class="textColor">专业定位</text>
+        <view>{{resultData.zhuany}}</view>
+      </view>
+      <view class="interest-result">
+        <text class="textColor">主要职业</text>
+        <view>{{resultData.zhiy}}</view>
+      </view>
+      <view class="interest-gift" bindtap="goToLucky" wx:if="{{!from}}">
+        <image  wx:if="{{imageUrl}}" src="{{imageUrl}}/img/yd/xingge/gift.png"></image>
+        <text>限时抽奖</text>
+      </view>
+    </block>
+    <!-- 无记录 -->
+    <block wx:if="{{isResult}}">
+      <view class="EmptyTip">您还没有生成性格测试报告，快去进行测试吧</view>
+    </block>
+ </view>
+</template>
+
+
+<script>
+  import wepy from 'wepy'
+  import results from '../utils/testResult'
+  import api from '../api/api'
+  import com from '../utils/common'
+  export default class interestResultDetail extends wepy.page {
+    config = {
+      navigationBarTitleText: '性格测试报告',
+      navigationBarBackgroundColor: '#fff',
+      navigationBarTextStyle: 'black'
+    }
+    data = {
+      resultData: '',
+      imageUrl: api.imageUrl,
+      uid: '',
+      from: '', // 判断跳转来源,我的页面我的测试
+      time: '', // 最新时间
+      isResult: false, // 是否有测试记录
+      bindPhone: false
+    }
+    methods = {
+      goToLucky() {
+        if (this.bindPhone) {
+          wepy.navigateTo({ url: '/pages/lucky' })
+        } else {
+          wepy.navigateTo({ url: '/pages/phone' })
+        }
+      }
+    }
+    onLoad(opt) {
+      console.log(opt)
+      this.from = opt.me
+      this.uid = wepy.getStorageSync('uid')
+      var isbind = wepy.getStorageSync('bindPhone')
+      if (isbind) {
+        this.bindPhone = true
+        this.$apply()
+      }
+      this.getResult()
+    }
+    getResult() {
+      api.getInterestResult().then(res => {
+        console.log(res, '结果')
+        if (res.code === '200') {
+          let _result = res.extraData.result
+          if (_result) {
+            this.resultData = results.getInterestResult(_result)
+            this.time = com.filterTime(res.extraData.time)
+          } else {
+            // 没有测试记录
+            this.isResult = true
+          }
+          this.$apply()
+        }
+      })
+    }
+    onShareAppMessage(res) {
+      return {
+        title: '测性格找专业',
+        path: `/pages/authorize_new?fromPage=interestIndex&shareId=${this.uid}`,
+        imageUrl: '../icon/shareBg.jpg'
+      }
+    }
+  }
+</script>
+
+<style lang="less" scoped>
+  .interest {
+    width: 750rpx;
+    min-height:100vh;
+    padding-bottom: 30rpx;
+    background-color:#f2f4f7;
+    &-timer{
+      background-color: #eee;
+      height: 50rpx;
+      line-height: 50rpx;
+      text-align: center;
+      font-size: 26rpx;
+      color: #999;
+    }
+    &-header{
+      width: 750rpx;
+      height: 360rpx;
+      position: relative;
+      margin-bottom: 100rpx;
+      .bg{
+        width: 750rpx;
+        height: 360rpx; 
+      }
+      .interest-title{
+        position: absolute;
+        bottom: -67rpx;
+        left: 30rpx;
+        width: 690rpx;
+        height: 135rpx;
+        box-shadow:0 10rpx 20rpx rgb(233, 232, 232);
+        background-color:#fff;
+        .interest-t{
+            width: 150rpx;
+            height: 135rpx;
+            margin: 0 auto;
+            text-align: center;
+          view{
+            padding-top: 20rpx;
+            font-size: 36rpx;
+            color:#5ba8ff;
+          }
+          text{
+            font-size: 26rpx;
+            color: #a7afb8;
+          }
+        }
+        image{
+          width: 58rpx;
+          height: 54rpx;
+          position: absolute;
+          top:45rpx;
+          &.image-left{
+              left: 170rpx;
+          }
+          &.image-right{
+              right:170rpx;
+          }
+        }
+      }
+    }
+    &-result{
+      width: 690rpx;
+      padding: 20rpx 35rpx 20rpx;
+      box-sizing: border-box;
+      background-color:#fff;
+      margin: 0 auto;
+      box-shadow:0 10rpx 20rpx rgb(221, 220, 220);
+      margin-bottom: 30rpx;
+      font-size: 26rpx;
+      .textColor{
+        color: #5ba8ff;
+      }
+      view{
+        margin-top: 10rpx;
+        font-size: 26rpx;
+        color:#666;
+        line-height: 40rpx;
+      }
+    }
+    &-gift{
+      width: 710rpx;
+      height: 140rpx;
+      margin-top: 30rpx;
+      position: relative;
+      margin-left: 20rpx;
+
+      image{
+        width: 710rpx;
+        height: 140rpx;
+      }
+      text{
+        position: absolute;
+        left: 300rpx;
+        top:40rpx;
+        color:#fff;
+        font-size: 30rpx;
+      }
+    }
+    .EmptyTip{
+      width: 750rpx;
+      height: 100rpx;
+      text-align: center;
+      line-height: 100rpx;
+      position: absolute;
+      top: 50%;
+      left: 0;
+      transform: translateY(-50%);
+      font-size: 28rpx;
+      color: #999;
+    }
+  }
+</style>

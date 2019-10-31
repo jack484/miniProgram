@@ -1,0 +1,189 @@
+<style lang="less">
+.index{
+  background-color: #f5f5f5;
+  // height: 100vh;
+  overflow: hidden;
+  &-goodsList{
+    font-size: 30rpx;
+    display: flex;
+    flex-wrap: wrap;
+    margin:0 auto;
+    &-item{
+      width: 350rpx;
+      box-sizing: border-box;
+      margin-top: 30rpx;
+      margin-left:16rpx;
+      text-align: center;
+      box-shadow: 0rpx 0rpx 10rpx #ccc;
+      font-size: 26rpx;
+      .img{
+        position: relative;
+        padding: 10rpx;
+        image{
+          width: 330rpx;
+          height: 330rpx;
+          display: block;
+        }
+        .price{
+          width: 96rpx;
+          height: 40rpx;
+          line-height: 40rpx;
+          font-size: 20rpx;
+          font-weight: 600;
+          background-color: #ff4e4e;
+          color: #fff;
+          position: absolute;
+          bottom: 10rpx;
+          left: 50%;
+          transform: translateX(-50%);
+        }
+      }
+      &-desc{
+        position: relative;
+        .name{
+          height: 42rpx;
+          line-height: 42rpx;
+          font-size: 22rpx;
+          color: #1f7faf;
+          font-weight: 600;
+          margin-bottom: 40rpx;
+        }
+      }
+    }
+  }
+  .getUserInfo{
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 10;
+  }
+}
+</style>
+<template>
+  <view class="index">
+    <load wx:if='{{!loading}}'></load>
+    <scroll-view scroll-y="true" style="width: 100%;height:100%;position:absolute; top:0rpx; left:0rpx;">
+      <view class="index-goodsList" wx:if='{{loading}}'>
+        <block wx:for='{{goodsList}}' wx:key='index'>
+          <view class="index-goodsList-item" bindtap='jumpToGoodDesc({{item.id}})'>
+            <view class="img">
+              <image src="{{imgBaseUrl+item.goods_image}}"/>
+              <view class="price">￥{{item.goods_price}}</view>
+            </view>
+            <view class="index-goodsList-item-desc">
+              <view class="name">{{item.goods_name}}</view>
+              <!-- <view class="size">{{item.size}}　颜色：{{item.color}}</view> -->
+            </view>
+          </view>
+        </block>
+        <button open-type='getUserInfo' bindgetuserinfo='getUserInfoHandle' class="getUserInfo" wx:if="{{getUserInfo}}"></button>
+      </view>
+    </scroll-view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  import api from '../api/api'
+
+  import load from '../components/load'
+
+  export default class Index extends wepy.page {
+    onShow() {
+      // console.log(this.$parent.globalData.imgBaseUrl)
+      this.imgBaseUrl = this.$parent.globalData.imgBaseUrl
+      this.session3rd = wepy.getStorageSync('session3rd')
+      setTimeout(() => {
+        this.loading = true
+        this.$apply()
+      }, 500)
+      if (wepy.getStorageSync('userInfo')) {
+        this.getUserInfo = false
+      }
+      // 获取商品信息
+      api.getIndexGoods({
+        data: {
+          session3rd: this.session3rd
+        },
+        method: 'POST'
+      }).then(res => {
+        console.log(res, '首页商品')
+        if (res.code === '200') {
+          this.goodsList = res.extraData.info
+          this.$apply()
+        }
+      })
+    }
+    onHide() {
+      setTimeout(() => {
+        this.loading = false
+        this.$apply()
+      }, 500)
+    }
+    config = {
+      navigationBarTitleText: '集泰在线商城'
+    }
+    components = {
+      load
+    }
+    data = {
+      // imgBaseUrl: 'http://192.168.8.90',
+      imgBaseUrl: '',
+      getUserInfo: true,
+      goodsList: [
+        {
+          goods_image: '',
+          goods_name: '安泰-636防霉密封胶',
+          goods_order: '1',
+          goods_price: '720',
+          id: 1
+        }
+      ],
+      loading: false,
+      currentPage: 1,
+      session3rd: ''
+    }
+    methods = {
+      // 跳转到商品详情
+      jumpToGoodDesc(id, name) {
+        wepy.navigateTo({ url: `/pages/goodDetails?id=${id}` })
+      },
+      // 重新授权
+      getUserInfoHandle(e) {
+        console.log(e.detail)
+        if (e.detail.errMsg === 'getUserInfo:ok') {
+          this.getUserInfo = false
+          let options = {
+            encryptedData: e.detail.encryptedData,
+            iv: e.detail.iv,
+            rawData: e.detail.rawData,
+            signature: e.detail.signature,
+            session3rd: wepy.getStorageSync('session3rd')
+          }
+          this.updateUser(options)
+          wepy.setStorageSync('userInfo', e.detail.userInfo)
+        } else if (e.detail.errMsg === 'getUserInfo:fail auth deny') {
+          wepy.showToast({
+            title: '授权后才能继续购物噢',
+            icon: 'none',
+            duration: 2000,
+            mask: true
+          })
+        }
+      }
+    }
+    // 更新用户信息接口
+    updateUser(options) {
+      api.userInfoUpdate({
+        data: options,
+        method: 'POST'
+      }).then(res => {
+        console.log(res, '更新会员信息')
+      })
+    }
+  }
+</script>

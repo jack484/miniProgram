@@ -1,0 +1,305 @@
+<template>
+    <view class="myCollection">
+      <i-tabs current="{{ current }}" bindchange="handleChange" class="myCollection-tabs">
+        <i-tab key="1" title="院校" color='#5ba8ff' class="tabSchool"></i-tab>
+        <i-tab key="2" title="专业" color='#5ba8ff' class="tabSubject"></i-tab>
+      </i-tabs>
+      <view wx:if='{{showTabBody[0]}}'>
+        <!-- 学校列表 -->
+        <view class="schoolList">
+          <block wx:for='{{collectSchool}}' wx:key='index'>
+            <view class="schoolInfo" bind:tap='jumpToSchoolDetails({{item}})' data-cid='{{item.cid}}'>
+              <view class="Info_left">
+                <image class="schoolLogo" src='http://img.baokaodaxue.com{{item.img}}' lazy-load/>
+              </view>
+              <view class="Info_right">
+                <view class="schoolName">{{item.name}}</view>
+                <view class="schoolTags">
+                  <text class="tag keyTag" wx:if="{{item.is985 == '1' ? true : false}}">985</text>
+                  <text class="tag keyTag" wx:if="{{item.is211 == '1' ? true : false}}">211</text>
+                  <text class="tag keyTag" wx:if="{{item.isDoubleA == '1' ? true : false}}">双一流</text>
+                  <text class="tag">{{item.level == 1 ? '本科' : '专科'}}</text>
+                </view>
+                <view class="schoolCity">{{item.location}}</view>
+                <image class="delCollect" catch:tap='cancelCollectedSchool({{item.cid}})' src='../icon/collect_select_icon@3x.png'/>
+              </view>
+            </view>
+          </block>
+        </view>
+        <view class="EmptyTip" wx:if="{{collectSchool.length == 0}}">
+          您还没有收藏的学校，快去收藏您喜欢的学校吧
+        </view>
+      </view>
+      <view wx:if='{{showTabBody[1]}}'>
+        <!-- 专业列表 -->
+        <view class="subjectList">
+          <block wx:for='{{collectSub}}' wx:key='index'>
+            <view class="subjectInfo" bindtap='jumpToSubDetails({{item}})'>
+              <view class="subjectInfo-name">
+                {{item.name}}<text>（{{item.level == 1 ? '本科' : '专科'}}）</text>
+              </view>
+              <image class="subjectInfo-isCollected" catch:tap='cancelCollectedSub({{item.code}})' src='../icon/collect_select_icon@3x.png'/>
+            </view>
+          </block>
+        </view>
+        <view class="EmptyTip" wx:if="{{collectSub.length == 0}}">
+          您还没有收藏的专业，快去收藏您喜欢的专业吧
+        </view>
+      </view>
+    </view>
+</template>
+<script>
+import wepy from 'wepy'
+
+import api from '../api/api'
+
+import com from '../utils/common'
+
+export default class MyCollection extends wepy.page {
+  onLoad() {
+    this.getMyCollection(1) // 院校
+    this.getMyCollection(2) // 专业
+    this.kq = this.$parent.globalData.kq
+    this.KQname = this.$parent.globalData.kqname
+  }
+  config = {
+    'navigationBarTitleText': '我的收藏',
+    'component': true,
+    'usingComponents': {
+      'i-tab': '../components/iView-components/tab/index',
+      'i-tabs': '../components/iView-components/tabs/index'
+    },
+    navigationBarBackgroundColor: '#fff',
+    navigationBarTextStyle: 'black'
+  }
+  data = {
+    current: '1',
+    showTabBody: [true, false],
+    collectSchool: [],
+    collectSub: [],
+    subjectCollectArr: [],
+    schoolCollectArr: [],
+    kq: '',
+    KQname: ''
+  }
+  methods = {
+    // 切换tab栏
+    handleChange ({ detail }) {
+      this.current = +detail.key
+      console.log(this.current)
+      com.handleChangeFor(this.showTabBody, this.current)
+      wepy.showLoading({
+        title: '获取收藏列表',
+        mask: true
+      }).then(() => {
+        if (this.current === 1) {
+          this.getMyCollection(2)
+        } else if (this.current === 2) {
+          this.getMyCollection(1)
+        }
+        wepy.hideLoading()
+      })
+    },
+    // 取消专业的收藏
+    cancelCollectedSub(code) {
+      // 点击取消收藏——传入该行信息
+      this.subjectCollectArr = wepy.getStorageSync('subjectCollect')
+      for (let i = 0; i < this.subjectCollectArr.length; i++) {
+        if (this.subjectCollectArr[i] === code) {
+          this.subjectCollectArr.splice(i, 1)
+          wepy.setStorageSync('subjectCollect', this.subjectCollectArr)
+        }
+      }
+      api.delCollectSubject({
+        method: 'POST',
+        data: {code: code}
+      }).then(res => {
+        wepy.showToast({
+          title: res.message,
+          icon: 'success',
+          duration: 2000,
+          mask: false
+        }).then(this.getMyCollection(2))
+      })
+    },
+    // 取消大学收藏
+    cancelCollectedSchool(cid) {
+      this.schoolCollectArr = wepy.getStorageSync('schoolCollect')
+      for (let i = 0; i < this.schoolCollectArr.length; i++) {
+        if (this.schoolCollectArr[i] === cid) {
+          this.schoolCollectArr.splice(i, 1)
+          wepy.setStorageSync('schoolCollect', this.schoolCollectArr)
+        }
+      }
+      api.delCollectSchool({
+        method: 'POST',
+        data: {cid: cid}
+      }).then(res => {
+        wepy.showToast({
+          title: res.message,
+          icon: 'success',
+          duration: 1500,
+          mask: false
+        }).then(this.getMyCollection(1))
+      })
+    },
+    // 跳转到学校详情
+    jumpToSchoolDetails(schoolInfo) {
+      this.$parent.globalData.schoolInfo = schoolInfo
+      let col = this.$parent.globalData.schoolInfo
+      let type = com.filterSchoolType(schoolInfo.typeid)
+      wepy.showLoading({
+        title: '载入中',
+        mask: false
+      }).then(() => {
+        wepy.navigateTo({ url: `/pages/schoolDetails?name=${col.name}&cid=${col.cid}&is211=${col.is211}&is985=${col.is985}&level=${col.level}&img=${col.img}&typeid=${type}&kq=${this.kq}&kqname=${this.KQname}&isDoubleA=${col.isDoubleA}` })
+        wepy.hideLoading()
+      })
+    },
+    // 跳转到专业详情
+    jumpToSubDetails(item) {
+      wepy.navigateTo({ url: `/pages/subjectDetails?pageTitle=${item.name}&code=${item.code}` })
+    }
+  }
+  // 获取收藏类型
+  getMyCollection(type) {
+    api.getMyCollect({
+      data: {
+        page: 1,
+        type: type
+      }
+    }).then(res => {
+      if (res.code === '200') {
+        console.log(res)
+        if (type === 1) {
+          this.collectSchool = res.extraData.info
+        } else if (type === 2) {
+          this.collectSub = res.extraData.info
+          console.log(res, '收藏zy')
+        }
+        this.$apply()
+      }
+    })
+  }
+}
+</script>
+<style lang="less" scoped>
+.myCollection {
+  background-color: #f2f5f7;
+  height: 100vh;
+  .myCollection-tabs{
+    position: relative;
+    i-tab{
+      width: 70rpx;
+      position: absolute;
+      top: 0;
+    }
+    .tabSchool{
+      left: 236rpx;
+    }
+    .tabSubject{
+      left: 418rpx;
+    }
+  }
+  .schoolList{
+    position: absolute;
+    top: 80rpx;
+    left: 0;
+    background-color: #f5f5f5;
+    .schoolInfo{
+      background-color:#fff;
+      width: 710rpx;
+      height: 88rpx;
+      padding: 20rpx;
+      margin-top: 10rpx;
+      position: relative;
+      .Info_left{
+        padding:20rpx;
+        box-sizing: border-box;
+        position: absolute;
+        top: 0;
+        left: 0;
+        .schoolLogo{
+          width: 84rpx;
+          height: 88rpx;
+        }
+      }
+      .Info_right{
+        width: 626rpx;
+        height: 128rpx;
+        position: absolute;
+        top: 0;
+        right: 0;
+        font-size: 24rpx;
+        display: flex;
+        flex-direction: column;
+        .schoolName{
+          flex: 1;
+          font-size: 34rpx;
+          color: #000;
+        }
+        .schoolTags{
+          flex: 1;
+          .tag{
+            padding: 10rpx;
+            margin-right: 16rpx;
+            color: #999;
+          }
+          .keyTag{
+            background-color: #5ba8ff;
+            color: #fff;
+            border-radius: 10rpx;
+          }
+        }
+        .schoolCity{
+          position: absolute;
+          bottom: 20rpx;
+          right: 20rpx;
+        }
+        .delCollect{
+          width: 45rpx;
+          height: 45rpx;
+          position: absolute;
+          top: 20rpx;
+          right: 20rpx;
+        }
+      }
+    }
+  }
+  .subjectList{
+    .subjectInfo{
+      height: 110rpx;
+      line-height: 110rpx;
+      width: 750rpx;
+      background-color: #fff;
+      display: flex;
+      font-size: 28rpx;
+      justify-content: space-between;
+      padding: 0 20rpx;
+      box-sizing: border-box;
+      border-bottom: 1rpx solid #dcdcdc;
+      position: relative;
+      &-name{}
+      &-isCollected{
+        width: 45rpx;
+        height: 45rpx;
+        position: absolute;
+        top: 30rpx;
+        right: 20rpx;
+      }
+    }
+  }
+  .EmptyTip{
+    width: 750rpx;
+    height: 100rpx;
+    text-align: center;
+    line-height: 100rpx;
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    font-size: 28rpx;
+    color: #999;
+  }
+}
+</style>

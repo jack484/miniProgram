@@ -1,0 +1,1156 @@
+<template>
+    <view class="schoolDetails">
+      <!-- <view wx:if="{{share != 2}}">
+        <button open-type='share'>分享2次后查看</button>
+      </view> -->
+      <view wx:if="{{share == 2}}">
+        <!-- 学校基本信息 -->
+        <view class="baseInfo">
+          <view class="schoolLogo">
+            <image src='https://img.baokaodaxue.com{{schoolInfo.img}}'/>
+          </view>
+          <view class="schoolInfo">
+            <view class="schoolname">{{currentBarTitle}}</view>
+            <view class="schoolTags">
+              <text class="tag key" wx:if="{{schoolInfo.is985 == '1' ? true : false}}">985</text>
+              <text class="tag key" wx:if="{{schoolInfo.is211 == '1' ? true : false}}">211</text>
+              <text class="tag key" wx:if="{{schoolInfo.isDoubleA == '1' ? true : false}}">双一流</text>
+              <text class="tag">{{schoolInfo.typeid}}</text>
+              <text class="tag">{{schoolInfo.level == 1 ? '本科' : '专科'}}</text>
+            </view>
+            <view class="schoolHandle">
+              <view class="collected" bind:tap='collectSchoolMyself({{schoolInfo.cid}})' wx:if='{{!isCollected}}'>+收藏</view>
+              <view class="collected" wx:if='{{isCollected}}' bind:tap='delcollect({{schoolInfo.cid}})'>已收藏</view>
+              <view class="level" wx:if='{{pickerType.length == 1}}'>普通类</view>
+              <!-- 选择类别 -->
+              <picker bindchange="pickerType" value="{{pickerTypeIndex}}" range="{{pickerType}}" class="level" wx:if='{{pickerType.length > 1}}'>
+                <view>
+                  <text wx:if='{{!pickerTypeIndex}}'>{{pickerType[0]}}</text>{{pickerType[pickerTypeIndex]}}
+                </view>
+                <view class="arrow"></view>
+              </picker>
+            </view>
+          </view>
+        </view>
+        <i-tabs current="{{ current }}" bindchange="handleChange" class="schoolDetails-tabs">
+          <i-tab key="1" title="录取" color='#5ba8ff'></i-tab>
+          <i-tab key="2" title="简介" color='#5ba8ff'></i-tab>
+          <i-tab key="3" title="招生计划" color='#5ba8ff'></i-tab>
+          <i-tab key="4" title="校园风光" color='#5ba8ff'></i-tab>
+        </i-tabs>
+        <view wx:if='{{showTabBody[0]}}' class="admission">
+          <view class="schoolScore">
+            <view class="schoolScore-title">
+              院校分数线<text class="area">（{{KQname}}）</text>
+            </view>
+            <view class="schoolScore-content">
+              <view class="schoolScore-content-picker">
+                <!-- 选择年份 -->
+                <picker bindchange="YXpickerYears" value="{{YXpickerYearsIndex}}" range="{{YXpickerYears}}" class="schoolScore-content-picker-years">
+                  <view>
+                    <text wx:if='{{!YXpickerYearsIndex}}'>{{pickYearYX}}</text>{{YXpickerYears[YXpickerYearsIndex]}}
+                  </view>
+                  <view class="arrow"></view>
+                </picker>
+                <!-- 选择批次 -->
+                <view class="schoolScore-content-picker-batch {{theBatch17.length == 0 ? 'noneBor' : ''}}">
+                  <!-- {{theBatch17[0]}} -->
+                  <!-- <text wx:if="{{YXpickerYears[YXpickerYearsIndex] == '2017'}}" >{{theBatch17[0]}}</text> -->
+                  <!-- <text wx:if="{{YXpickerYears[YXpickerYearsIndex] != '2017'}}" >{{theBatch16[0]}}</text> -->
+                  <text>{{YXbatchPICI}}</text>
+                </view>
+                <!-- 选择文理科 -->
+                <picker bindchange="YXpickerSub" value="{{YXpickerSubjectIndex}}" range="{{YXpickerSubject}}" class="schoolScore-content-picker-subject">
+                  <view>
+                    <text wx:if='{{!YXpickerSubjectIndex}}'>{{YXpickerSubject[0]}}</text>
+                    {{YXpickerSubject[YXpickerSubjectIndex]}}
+                  </view>
+                  <view class="arrow"></view>
+                </picker>
+              </view>
+              <view class="schoolScore-content-data">
+                <view class="schoolScore-content-data-head">
+                  <view>最高分</view>
+                  <view>最低分</view>
+                  <view>平均分</view>
+                  <view>线差</view>
+                  <view>最低位次</view>
+                </view>
+                <view class="schoolScore-content-data-body">
+                    <view class="bodyStyle">{{YXfen.gaofen !== '0' ? YXfen.gaofen : '--'}}<text wx:if="{{!YXfen.gaofen}}">--</text></view>
+                    <view class="bodyStyle">{{YXfen.difen !== '0' ? YXfen.difen : '--'}}<text wx:if='{{!YXfen.difen}}'>--</text></view>
+                    <view class="bodyStyle">{{YXfen.pjfen !== '0' ? YXfen.pjfen : '--'}}<text wx:if='{{!YXfen.pjfen}}'>--</text></view>
+                    <view class="bodyStyle">{{YXfen.xc !== '0' ? YXfen.xc : '--'}}<text wx:if='{{!YXfen.xc}}'>--</text></view>
+                    <view class="bodyStyle">{{YXfen.zdwc !== '0' ? YXfen.zdwc : '--'}}<text wx:if='{{!YXfen.zdwc}}'>--</text></view>
+                </view>
+              </view>
+            </view>
+          </view>
+          <view class="subjectScore">
+            <view class="subjectScore-title">
+              专业录取分数线
+            </view>
+            <view class="subjectScore-content">
+              <view class="schoolScore-content-picker">
+                <!-- 选择年份 -->
+                <picker bindchange="ZYpickerYears" value="{{ZYpickerYearsIndex}}" range="{{ZYpickerYears}}" class="schoolScore-content-picker-years">
+                  <view>
+                    <text wx:if='{{!ZYpickerYearsIndex}}'>{{pickYearZY}}</text>{{ZYpickerYears[ZYpickerYearsIndex]}}
+                  </view>
+                  <view class="arrow"></view>
+                </picker>
+                <!-- 选择批次 -->
+                <view class="schoolScore-content-picker-batch {{theBatch17.length == 0 ? 'noneBor' : ''}}">
+                  <!-- <text wx:if="{{ZYpickerYears[ZYpickerYearsIndex] == '2017'}}" >{{theBatch17[0]}}</text> -->
+                  <!-- <text wx:if="{{ZYpickerYears[ZYpickerYearsIndex] != '2017'}}" >{{theBatch16[0]}}</text> -->
+                  <text>{{ZYbatchPICI}}</text>
+                </view>
+                <!-- 选择文理科 -->
+                <picker bindchange="ZYpickerSub" value="{{ZYpickerSubjectIndex}}" range="{{ZYpickerSubject}}" class="schoolScore-content-picker-subject">
+                  <view>
+                    <text wx:if='{{!ZYpickerSubjectIndex}}'>{{ZYpickerSubject[0]}}</text>{{ZYpickerSubject[ZYpickerSubjectIndex]}}
+                  </view>
+                  <view class="arrow"></view>
+                </picker>
+              </view>
+              <view class="subjectScore-content-dataHead">
+                <text class="firstHead">招生专业</text>
+                <view>最高分</view>
+                <view>最低分</view>
+                <view>平均分</view>
+                <view>最低位次</view>
+              </view>
+              <view class="subjectScore-content-dataBody">
+                <block wx:for='{{zyfen}}' wx:key='index'>
+                  <view class="scoreDetails" bind:tap='jumpToScoreDetails({{item.major}})'>
+                    <view class="scoreDetails-name">
+                        <scroll-view scroll-x>
+                          {{item.major}}
+                          <!-- <text wx:if='{{textLength[index] > 295}}'>　　{{item.major}}</text> -->
+                        </scroll-view>
+                    </view>
+                    <view class="scoreDetails-score">
+                      <view>{{item.gaofen == '0' ? '--' : item.gaofen}}</view>
+                      <view>{{item.difen == '0' ? '--' : item.difen}}</view>
+                      <view>{{item.pjfen == '0' ? '--' : item.pjfen}}</view>
+                      <view>{{item.zdwc == '0' ? '--' : item.zdwc}}</view>
+                    </view>
+                  </view>
+                </block>
+                <view wx:if="{{zyfen.length == 0}}" class="emptyTip">
+                  <text wx:if="{{pickYearZY == '2017'}}">我们的数据与各省考试院的数据一致，2017年院校录取相关数据将在考试院公布后即时更新(考试院公布时间2018年5~6月)</text>
+                  <text wx:if="{{pickYearZY != '2017'}}">暂无专业录取分数线的数据</text>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+        <view wx:if='{{showTabBody[1]}}' class="introduction">
+          <view class="schoolBaseInfo">
+            <view class="city flexBox baseBR">
+              <text>{{schoolIntroduction.city}}</text>
+              <text class="titleStyle">所在城市</text>
+            </view>
+            <view class="created flexBox">
+              <text>{{schoolIntroduction.cjsj}}</text>
+              <text class="titleStyle">创建时间</text>
+            </view>
+            <view class="type flexBox baseBR">
+              <text>{{schoolIntroduction.schooltype}}</text>
+              <text class="titleStyle">办学</text>
+            </view>
+            <view class="people flexBox">
+              <text>{{schoolIntroduction.students}}</text>
+              <text class="titleStyle">学生数</text>
+            </view>
+            <view class="master flexBox baseBR">
+              <text>{{schoolIntroduction.ssd}}</text>
+              <text class="titleStyle">硕士数</text>
+            </view>
+            <view class="doctor flexBox">
+              <text>{{schoolIntroduction.bsd}}</text>
+              <text class="titleStyle">博士数</text>
+            </view>
+          </view>
+          <view class="schoolDescInfo">
+            <image src='https://img.baokaodaxue.com{{schoolIntroduction.tupian}}' class="schoolDescInfo-img" />
+            <view class="schoolDescInfo-content">
+              {{intrShow}}
+              <view class="more" bind:tap='showMoreDesc'>
+                <image wx:if='{{showMore}}' src='../icon/gray_arrow_down@3x.png' class="arrow_down"/>
+                <view wx:if='{{!showMore}}'>{{intrHide}}</view>
+              </view>
+            </view>
+          </view>
+          <view class="schoolOtherInfo">
+            <view class="scholarship" bind:tap='jumpToZSZC'>
+              招生章程
+              <image src='../icon/gray_arrow_rignt@3x.png' class="arrow_right"/>
+            </view>
+            <view class="scholarship" bind:tap='jumpToScholarship'>
+              奖助学金
+              <image src='../icon/gray_arrow_rignt@3x.png' class="arrow_right"/>
+            </view>
+            <view class="schoolfellow" bind:tap='jumpToSchoolfellow'>
+              知名校友
+              <image src='../icon/gray_arrow_rignt@3x.png' class="arrow_right"/>
+            </view>
+          </view>
+        </view>
+        <view wx:if='{{showTabBody[2]}}' class="plan">
+          <view class="plan-title">
+            <view class="plan-title-name"><text wx:if='{{!pickerPlanYearsIndex}}'>{{pickerPlanYears[0]}}</text>{{pickerPlanYears[pickerPlanYearsIndex]}}年招生计划</view>
+            <view class="plan-title-picker">
+              <!-- 选择年份 -->
+              <picker bindchange="pickerPlanYears" value="{{pickerPlanYearsIndex}}" range="{{pickerPlanYears}}" class="schoolScore-content-picker-batch">
+                <view>
+                  <text wx:if='{{!pickerPlanYearsIndex}}'>{{pickerPlanYears[0]}}</text>{{pickerPlanYears[pickerPlanYearsIndex]}}
+                </view>
+                <view class="arrow"></view>
+              </picker>
+              <!-- 选择科目 -->
+              <picker bindchange="pickerPlanSub" value="{{pickerPlanSubIndex}}" range="{{pickerPlanSub}}" class="schoolScore-content-picker-batch">
+                <view>
+                  <text wx:if='{{!pickerPlanSubIndex}}'>{{pickerPlanSub[0]}}</text>{{pickerPlanSub[pickerPlanSubIndex]}}
+                </view>
+                <view class="arrow"></view>
+              </picker>
+            </view>
+          </view>
+          <view class="plan-table">
+            <view class="plan-table-head">
+              <view class="plan-table-body-line">
+                <view class="plan-table-head-line-num">代码</view>
+                <view class="plan-table-head-line-sub">专业</view>
+                <view class="plan-table-head-line-plan">计划数</view>
+              </view>
+            </view>
+            <view class="plan-table-body">
+              <block wx:for='{{schoolPlan}}' wx:key='index'>
+                <view class="plan-table-body-line">
+                  <view class="plan-table-body-line-num">{{item.code == '' ? '--' : item.code}}</view>
+                  <view class="plan-table-body-line-sub">{{item.major}}</view>
+                  <view class="plan-table-body-line-plan">{{item.jhrs}}</view>
+                </view>
+              </block>
+            </view>
+          </view>
+        </view>
+        <view wx:if='{{showTabBody[3]}}' class="schoolView">
+            <scroll-view scroll-y="true" style="height:70%;width: 100%;position:absolute; top:320rpx; left:0rpx; display:flex;flex-wrap:wrap" bindscrolltolower='loadOtherView' enable-back-to-top>
+            <view class='flexBox'>
+          <block wx:for='{{schoolView}}' wx:key='index'>
+              <view class="schoolViewBox">
+                <image src='https://img.baokaodaxue.com{{item}}' class="schoolView-img" bindtap='previewImageHandle({{schoolView}},{{index}})'/>
+              </view>
+          </block>
+            </view>
+            </scroll-view>
+        </view>
+      </view>
+    </view>
+</template>
+<script>
+import wepy from 'wepy'
+
+import api from '../api/api'
+
+import com from '../utils/common'
+
+export default class SchoolDetails extends wepy.page {
+  onLoad(options) {
+    wepy.hideLoading()
+    // console.log(options, 'index传过来的数据')
+    var temp = options
+    // 分享页面进入
+    var share = wepy.getStorageSync('share')
+    if (!temp.name && share.fromPage === 'schoolDetails') {
+      temp.cid = share.cid
+      temp.img = share.img
+      temp.is211 = share.is211
+      temp.is985 = share.is985
+      temp.isDoubleA = share.isDoubleA
+      temp.kq = share.kq
+      temp.kqname = share.kqname
+      temp.level = share.level
+      temp.name = share.name
+      temp.typeid = share.typeid
+    }
+    // console.log(temp, 'temp')
+    // 解决字符的编码错乱
+    temp.name = decodeURIComponent(temp.name)
+    this.currentBarTitle = temp.name
+    temp.typeid = decodeURIComponent(temp.typeid)
+    temp.img = decodeURIComponent(temp.img)
+    temp.cid = decodeURIComponent(temp.cid)
+    temp.kqname = decodeURIComponent(temp.kqname)
+    this.cid = temp.cid
+    temp.typeid = com.filterSchoolType(temp.typeid)
+    this.schoolInfo = temp
+    wepy.setNavigationBarTitle({ title: this.currentBarTitle })
+    this.kq = temp.kq
+    this.KQname = temp.kq
+    // 收藏功能
+    this.schoolCollectArr = wepy.getStorageSync('schoolCollect')
+    for (let i = 0; i < this.schoolCollectArr.length; i++) {
+      if (this.schoolCollectArr[i] === this.cid) {
+        this.isCollected = true
+      }
+    }
+    this.uid = wepy.getStorageSync('uid')
+    // 进来默认加载录取
+    // 批次、分类
+    wepy.showLoading({
+      title: '正在加载',
+      mask: true
+    }).then(() => {
+      api.getSchoolInfoBatch({
+        data: {
+          cid: this.schoolInfo.cid,
+          kq: this.kq
+        }
+      }).then(res => {
+        console.log(res, '批次、分类')
+        if (res.code === '200') {
+          this.theBatch16 = res.extraData.batch16
+          this.theBatch17 = res.extraData.batch17
+          this.schoolTypeInfo = res.extraData.info
+          // 取出学校类别，放入pick
+          for (let i = 0; i < this.schoolTypeInfo.length; i++) {
+            console.log(this.schoolTypeInfo[i].name)
+            if (!this.pickerType) {
+              this.pickerType = []
+            }
+            this.pickerType.push(this.schoolTypeInfo[i].name)
+          }
+          this.$apply()
+        }
+      }).then(() => {
+        // 年份
+        api.getSchoolInfoYear({
+          data: {kq: this.kq}
+        }).then(res => {
+          console.log(res, '年份')
+          if (res.code === '200') {
+            // 去掉2018年份
+            // for (let i = 0; i < res.extraData.year.length; i++) {
+            //   if (res.extraData.year[i] === '2018') {
+            //     res.extraData.year.splice(i, 1)
+            //   }
+            // }
+            this.YXpickerYears = res.extraData.scoreyear
+            this.ZYpickerYears = res.extraData.scoreyear
+            this.pickerPlanYears = res.extraData.planyear
+            this.YXYear = res.extraData.yxmoren
+            this.ZYYear = res.extraData.zymoren
+            // 初次获取院校分、专业分的批次
+            this.getPICI()
+            this.changeYXfen(this.YXbatchPICI, this.pickYearYX, this.pickWlYX, this.type)
+            this.changeZYfen(this.ZYbatchPICI, this.pickYearZY, this.pickWlZY, this.type)
+            this.getSchoolZSJH(this.planPickYear, this.planPickWl, this.type)
+            this.getSchoolViewImg(this.imgPage)
+            this.$apply()
+          }
+        }).then(() => {
+          // 院校分
+          // this.changeYXfen(this.YXbatchPICI)
+          // 专业分
+          // this.changeZYfen(this.ZYbatchPICI)
+          // wepy.hideLoading()
+        })
+      })
+    })
+
+    // 分享配置
+    // wepy.showShareMenu({ withShareTicket: true })
+  }
+  onShow() {
+    // this.share = wepy.getStorageSync('share') || 0
+    // wepy.showShareMenu({
+    //   // 要求小程序返回分享目标信息
+    //   withShareTicket: true
+    // })
+  }
+  config = {
+    'component': true,
+    'usingComponents': {
+      'i-tabs': '../components/iView-components/tabs/index',
+      'i-tab': '../components/iView-components/tab/index'
+    }
+  }
+  data = {
+    share: 2,
+    current: 1,
+    currentBarTitle: '',
+    cid: '',
+    subName: '',
+    KQname: '',
+    showTabBody: [true, false, false, false],
+    // 选择器的数据
+    YXpickerYears: [],
+    YXpickerSubject: ['文科', '理科'],
+    YXpickerYearsIndex: '',
+    YXpickerSubjectIndex: '',
+    ZYpickerYears: [],
+    ZYpickerSubject: ['文科', '理科'],
+    ZYpickerYearsIndex: '',
+    ZYpickerSubjectIndex: '',
+    pickerType: [],
+    pickerTypeIndex: '',
+    // 选择的年份
+    YXYear: '',
+    ZYYear: '',
+    // 批次
+    theBatch16: [],
+    theBatch17: [],
+    YXbatchPICI: '',
+    ZYbatchPICI: '',
+    // 院校/专业分
+    YXfen: {},
+    zyfen: [],
+    showMore: true,
+    pickerPlanYears: [],
+    pickerPlanYearsIndex: '',
+    pickerPlanSub: ['文科', '理科'],
+    pickerPlanSubIndex: '',
+    intrShow: '',
+    intrHide: '',
+    schoolInfo: [],
+    schoolIntroduction: [],
+    schoolPlan: [],
+    schoolView: [],
+    schoolTypeInfo: [],
+    isCollected: false,
+    schoolCollectArr: [],
+    pickYearYX: 2017,
+    pickWlYX: 1,
+    pickYearZY: 2017,
+    pickWlZY: 1,
+    planPickYear: 2018,
+    planPickWl: 1,
+    type: 0,
+    imgPage: 1,
+    checkImg: true,
+    kq: '',
+    // 走马灯效果参数
+    interval: '',
+    textLength: [],
+    textMarginLeft: [],
+    uid: ''
+  }
+  methods = {
+    // 下拉加载校园图片
+    loadOtherView() {
+      this.imgPage += 1
+      if (this.checkImg) {
+        this.getSchoolViewImg(this.imgPage)
+      }
+    },
+    // tab栏切换
+    handleChange ({ detail }) {
+      this.current = +detail.key
+      console.log(this.current)
+      com.handleChangeFor(this.showTabBody, this.current)
+      wepy.showLoading({
+        title: '正在加载',
+        mask: false
+      }).then(() => {
+          // 根据点击的tab来发送请求
+        if (this.current === 2) {
+          api.getSchoolInfoJJ({
+            data: {cid: this.cid}
+          }).then(res => {
+            console.log(res)
+            if (res.code === '200') {
+              this.schoolIntroduction = res.extraData
+              this.$apply()
+            }
+            this.intrShow = this.schoolIntroduction.intr.substring(0, 100)
+            this.intrHide = this.schoolIntroduction.intr.substring(100)
+            wepy.hideLoading()
+            // replace(/\s+/g, '')
+          })
+        } else if (this.current === 3) {
+          this.getSchoolZSJH(this.planPickYear, this.planPickWl, this.type)
+        } else if (this.current === 4) {
+          // this.getSchoolViewImg(this.imgPage)
+        }
+        wepy.hideLoading()
+      })
+    },
+    // 类型选择器picker
+    pickerType(e) {
+      this.getPICI()
+      this.pickerTypeIndex = e.detail.value
+      for (let i = 0; i < this.schoolTypeInfo.length; i++) {
+        this.type = this.schoolTypeInfo[this.pickerTypeIndex].type
+      }
+      this.zyfen = []
+      this.changeYXfen(this.YXbatchPICI, this.pickYearYX, this.pickWlYX, this.type)
+      this.changeZYfen(this.ZYbatchPICI, this.pickYearZY, this.pickWlZY, this.type)
+    },
+    // 院校选择器picker-年份
+    YXpickerYears(e) {
+      this.YXYear = this.pickYearYX
+      this.getPICI()
+      this.YXpickerYearsIndex = e.detail.value
+      this.pickYearYX = this.YXpickerYears[this.YXpickerYearsIndex]
+      this.changeYXfen(this.YXbatchPICI, this.pickYearYX, this.pickWlYX, this.type)
+    },
+    // 院校选择器picker-文理科
+    YXpickerSub(e) {
+      this.getPICI()
+      this.YXpickerSubjectIndex = e.detail.value
+      this.pickWlYX = this.YXpickerSubject[this.YXpickerSubjectIndex]
+      this.pickWlYX = this.pickWlYX === '文科' ? 1 : 2
+      this.changeYXfen(this.YXbatchPICI, this.pickYearYX, this.pickWlYX, this.type)
+    },
+    // 专业选择器picker-年份
+    ZYpickerYears(e) {
+      this.ZYYear = this.pickYearZY
+      this.getPICI()
+      console.log('年份')
+      this.ZYpickerYearsIndex = e.detail.value
+      this.pickYearZY = this.ZYpickerYears[this.ZYpickerYearsIndex]
+      this.zyfen = []
+      this.changeZYfen(this.ZYbatchPICI, this.pickYearZY, this.pickWlZY)
+    },
+    // 专业选择器picker-文理科
+    ZYpickerSub(e) {
+      this.getPICI()
+      this.ZYpickerSubjectIndex = e.detail.value
+      this.pickWlZY = this.ZYpickerSubject[this.ZYpickerSubjectIndex]
+      this.pickWlZY = this.pickWlZY === '文科' ? 1 : 2
+      this.zyfen = []
+      this.changeZYfen(this.ZYbatchPICI, this.pickYearZY, this.pickWlZY, this.type)
+    },
+    // 选择器picker-招生计划年份
+    pickerPlanYears(e) {
+      this.getPICI()
+      this.pickerPlanYearsIndex = e.detail.value
+      this.planPickYear = this.pickerPlanYears[this.pickerPlanYearsIndex]
+      console.log(this.planPickYear)
+      this.getSchoolZSJH(this.planPickYear, this.planPickWl, this.type)
+    },
+    // 选择器picker-招生计划文理科
+    pickerPlanSub(e) {
+      this.getPICI()
+      this.pickerPlanSubIndex = e.detail.value
+      this.planPickWl = this.pickerPlanSub[this.pickerPlanSubIndex] === '文科' ? 1 : 2
+      console.log(this.planPickWl)
+      this.getSchoolZSJH(this.planPickYear, this.planPickWl, this.type)
+    },
+    // 显示更多文章内容
+    showMoreDesc() {
+      this.showMore = false
+    },
+    // 跳转到奖学金页面
+    jumpToScholarship() {
+      wepy.showLoading({
+        title: '正在加载',
+        mask: false
+      }).then(() => {
+        wepy.navigateTo({ url: `/pages/scholarship?pageTitle=${this.currentBarTitle}&cid=${this.cid}` })
+        wepy.hideLoading()
+      })
+    },
+    // 跳转到知名校友页面
+    jumpToSchoolfellow() {
+      wepy.showLoading({
+        title: '正在加载',
+        mask: false
+      }).then(() => {
+        wepy.navigateTo({ url: `/pages/schoolfellow?pageTitle=${this.currentBarTitle}&cid=${this.cid}` })
+        wepy.hideLoading()
+      })
+    },
+    // 跳转到招生章程页面
+    jumpToZSZC() {
+      wepy.showLoading({
+        title: '正在加载',
+        mask: false
+      }).then(() => {
+        wepy.navigateTo({ url: `/pages/studentAdmissions?pageTitle=${this.currentBarTitle}&cid=${this.cid}` })
+        wepy.hideLoading()
+      })
+    },
+    // 跳转到分数详情页
+    jumpToScoreDetails(name) {
+      this.subName = name
+      wepy.navigateTo({ url: `/pages/scoreDetails?pageTitle=${this.currentBarTitle}&subName=${this.subName}&cid=${this.cid}&wl=${this.pickWlZY}` })
+    },
+    // 收藏大学
+    collectSchoolMyself(cid) {
+      this.isCollected = true
+      if (!this.schoolCollectArr) {
+        this.schoolCollectArr = []
+      }
+      this.schoolCollectArr.push(cid)
+      // 将收藏的学校信息放入本地
+      wepy.setStorageSync('schoolCollect', this.schoolCollectArr)
+      api.collectSchool({
+        method: 'POST',
+        data: {
+          cid: cid,
+          type: wepy.getStorageSync('dev')
+        }
+      }).then(res => {
+        if (res.code === '200') {
+          wepy.showToast({
+            title: res.message,
+            icon: 'success',
+            duration: 2000,
+            mask: true
+          })
+        }
+      })
+    },
+    // 取消收藏大学
+    delcollect(cid) {
+      this.isCollected = false
+      this.schoolCollectArr = wepy.getStorageSync('schoolCollect')
+      for (let i = 0; i < this.schoolCollectArr.length; i++) {
+        if (this.schoolCollectArr[i] === cid) {
+          this.schoolCollectArr.splice(i, 1)
+          wepy.setStorageSync('schoolCollect', this.schoolCollectArr)
+        }
+      }
+      api.delCollectSchool({
+        method: 'POST',
+        data: {cid: cid}
+      }).then(res => {
+        console.log(res, 'err')
+        wepy.showToast({
+          title: res.message,
+          icon: 'success',
+          duration: 1500,
+          mask: false
+        })
+      })
+    },
+    // 图片预览
+    previewImageHandle(urls, index) {
+      for (let i = 0; i < urls.length; i++) {
+        urls[i] = 'https://img.baokaodaxue.com' + urls[i]
+      }
+      wepy.previewImage({
+        current: urls[index],
+        urls: urls
+      })
+    }
+  }
+  // 页面转发功能
+  onShareAppMessage(res) {
+    return {
+      title: this.currentBarTitle,
+      path: `/pages/authorize_new?name=${this.schoolInfo.name}&cid=${this.schoolInfo.cid}&is211=${this.schoolInfo.is211}&is985=${this.schoolInfo.is985}&level=${this.schoolInfo.level}&img=${this.schoolInfo.img}&typeid=${this.schoolInfo.typeid}&kq=${this.schoolInfo.kq}&isDoubleA=${this.schoolInfo.isDoubleA}&kqname=${this.schoolInfo.kqname}&fromPage=schoolDetails&shareId=${this.uid}`
+    }
+  }
+  // 获取专业分
+  changeZYfen(pici, year = 2017, wl = 1, type = 0) {
+    api.getSchoolInfoZYF({
+      data: {
+        cid: this.cid,
+        kq: this.kq,
+        pici: pici,
+        bz: this.schoolInfo.level,
+        year: year,
+        wl: wl,
+        type: type
+      }
+    }).then(res => {
+      console.log(res, '专业分')
+      if (res.code === '200') {
+        if (res.extraData[0]) {
+          console.log('kong')
+          this.zyfen = res.extraData
+          // 走马灯
+          for (let i = 0; i < this.zyfen.length; i++) {
+            this.textMarginLeft[i] = 0
+            this.textLength[i] = res.extraData[i].major.length * 26
+            // this.run(i)
+          }
+          this.$apply()
+        }
+      }
+    })
+  }
+  // 手动修改院校分(获取)
+  changeYXfen(pici, year = 2017, wl = 1, type = 0) {
+    api.getSchoolInfoYXF({
+      data: {
+        cid: this.cid,
+        kq: this.kq,
+        year: year,
+        pici: pici,
+        wl: wl,
+        bz: this.schoolInfo.level,
+        type: type
+      }
+    }).then(res => {
+      console.log(res, '院校分')
+      if (res.code === '200') {
+        this.YXfen = res.extraData
+        this.$apply()
+      }
+    })
+  }
+  // 获取招生计划专业数据
+  getSchoolZSJH(year, wl) {
+    let data = {
+      kq: this.kq,
+      cid: this.cid,
+      wl: 1
+    }
+    if (year) {
+      data.year = year
+    }
+    if (wl) {
+      data.wl = wl
+    }
+    wepy.showLoading({
+      title: '',
+      mask: true
+    }).then(() => {
+      api.getSchoolInfoJH({
+        data: data
+      }).then(res => {
+        if (res.code === '200') {
+          this.schoolPlan = res.extraData
+          this.$apply()
+          wepy.hideLoading()
+        }
+      })
+    })
+  }
+  // 获取批次
+  getPICI() {
+    if (this.YXYear === '2017') {
+      this.YXbatchPICI = this.theBatch17[0]
+    } else {
+      this.YXbatchPICI = this.theBatch16[0]
+    }
+    if (this.ZYYear === '2017') {
+      this.ZYbatchPICI = this.theBatch17[0]
+    } else {
+      this.ZYbatchPICI = this.theBatch16[0]
+    }
+  }
+  // 获取校园风光
+  getSchoolViewImg(page) {
+    wepy.showLoading({
+      title: '',
+      mask: true
+    }).then(() => {
+      api.getSchoolInfoFG({
+        data: {
+          cid: this.cid,
+          kq: this.kq,
+          page: page
+        }
+      }).then(res => {
+        // console.log(res, 4)
+        if (res.code === '200') {
+          if (!this.schoolView) {
+            this.schoolView = []
+          }
+          if (res.extraData.info.length === 0) {
+            this.checkImg = false
+            console.log('kong')
+          }
+          this.schoolView = this.schoolView.concat(res.extraData.info)
+          this.$apply()
+          wepy.hideLoading()
+          console.log(res.extraData.info)
+        }
+      })
+    })
+  }
+  // 走马灯效果
+  run(index) {
+    if (this.textLength[index] > 295 && this.textLength[index] !== 52 && this.textLength[index] !== 104) {
+      this.interval = setInterval(() => {
+        this.textMarginLeft[index] -= 3
+        this.$apply()
+        if (-this.textMarginLeft[index] > this.textLength[index]) {
+          this.textMarginLeft[index] = 0
+        }
+      }, 40)
+    } else {
+      this.textMarginLeft[index] = 0
+    }
+  }
+}
+</script>
+<style lang="less" scoped>
+.schoolDetails{
+  background-color: #f2f5f7;
+  .baseInfo{
+    border-top: 1rpx solid #dcdcdc;
+    background-color: #fff;
+    height: 234rpx;
+    width: 750rpx;
+    box-sizing: border-box;
+    padding: 30rpx 40rpx 30rpx 20rpx;
+    display: flex;
+    margin-bottom: 14rpx;
+    z-index: 3;
+    .schoolLogo{
+      width: 90rpx;
+      image{
+        width: 90rpx;
+        height: 90rpx;
+      }
+    }
+    .schoolInfo{
+      position: relative;
+      width: 640rpx;
+      margin-left: 20rpx;
+      .schoolname{
+        position: absolute;
+        top: 0;
+        left: 0;
+        font-size: 34rpx;
+        width: 100%;
+      }
+      .schoolTags{
+        font-size: 20rpx;
+        position: absolute;
+        top: 50rpx;
+        left: 0;
+        .tag{
+          padding: 5rpx 10rpx;
+          border-radius: 10rpx;
+          color: #999;
+        }
+        .key{
+          background-color: #5aa9ff;
+          color: #fff;
+          margin-right: 15rpx;
+        }
+      }
+      .schoolHandle{
+        width: 100%;
+        position: absolute;
+        top: 115rpx;
+        left: 0;
+        font-size: 26rpx;
+        display: flex;
+        justify-content: space-between;
+        .collected{
+          width: 184rpx;
+          height: 60rpx;
+          line-height: 60rpx;
+          color: #5aa9ff;
+          border: 1rpx solid #5aa9ff;
+          text-align: center;
+        }
+        .level{
+          height: 60rpx;
+          padding: 0 45rpx;
+          line-height: 60rpx;
+          border: 1rpx solid #dcdcdc;
+          text-align: center;
+          color: #333;
+        }
+      }
+    }
+  }
+  .admission{
+    .schoolScore,
+    .subjectScore{
+      width: 750rpx;
+      background-color: #fff;
+      padding-top: 30rpx;
+      margin-bottom: 14rpx;
+      &-title{
+        font-size: 30rpx;
+        font-weight: 600;
+        padding-left: 20rpx;
+        margin-bottom: 30rpx;
+        .area{
+          font-size: 24rpx;
+        }
+      }
+      &-content{
+        &-picker{
+          display: flex;
+          justify-content: space-around;
+          margin-bottom: 30rpx;
+          picker,
+          &-batch{
+            font-size: 24rpx;
+            border: 1rpx solid #dcdcdc;
+            width: 182rpx;
+            height: 58rpx;
+            line-height: 58rpx;
+            text-align: center;
+            position: relative;
+          }
+        }
+        &-data{
+          &-head,
+          &-body{
+            display: flex;
+            view{
+              flex: 1;
+              width: 178rpx;
+              height: 68rpx;
+              line-height: 68rpx;
+              text-align: center;
+              background-color: #f5f5f5;
+              border: 1rpx solid #dcdcdc;
+              color: #999;
+              font-size: 26rpx;
+              margin-left: -1rpx;
+              margin-top: -1rpx;
+            }
+            .bodyStyle{
+              background-color: #fff;
+              color: #333;
+            }
+          }
+        }
+      }
+    }
+    .subjectScore{
+      &-content{
+        font-size: 26rpx;
+        &-dataHead{
+          display: flex;
+          padding: 0 20rpx;
+          color: #999;
+          background-color: #f5f5f5;
+          border-top: 1px solid #dcdcdc;
+          border-bottom: 1px solid #dcdcdc;
+          view{
+            flex: 1;
+            text-align: center;
+            height: 68rpx;
+            line-height: 68rpx;
+          }
+          .firstHead{
+            width: 295rpx;
+            line-height: 68rpx;
+          }
+        }
+        &-dataBody{
+          .scoreDetails{
+            height: 118rpx;
+            line-height: 118rpx;
+            background-color: #fff;
+            border-bottom: 1px solid #dcdcdc;
+            display: flex;
+            padding: 0 20rpx;
+            position: relative;
+            .arrow_right{
+              width: 20rpx;
+              height: 30rpx;
+              position: absolute;
+              top: 45rpx;
+              right: 20rpx;
+            }
+            &-name{
+              width: 295rpx;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+            }
+            &-score{
+              width: 415rpx;
+              display: flex;
+              view{
+                flex:1;
+                text-align: center;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  .introduction{
+    .schoolBaseInfo{
+      width: 750rpx;
+      display: flex;
+      flex-wrap: wrap;
+      margin-bottom: 14rpx;
+      .flexBox {
+        height: 120rpx;
+        line-height: 100rpx;
+        text-align: center;
+        width: 374rpx;
+        background-color: #fff;
+        border-top: 1px solid #dcdcdc;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        text{
+          font-size: 30rpx;
+          text-align: center;
+          height: 30rpx;
+          line-height: 30rpx;
+          margin: 25rpx 0 0 15rpx;
+        }
+      }
+      .titleStyle{
+        font-size: 26rpx;
+        color: #999;
+        margin: 0;
+      }
+      .baseBR{
+        border-right: 1px solid #dcdcdc;
+      }
+    }
+    .schoolDescInfo{
+      width: 710rpx;
+      background-color: #fff;
+      padding: 20rpx;
+      margin-bottom: 14rpx;
+      &-img{
+        width: 710rpx;
+        height: 450rpx;
+      }
+      &-content{
+        font-size: 30rpx;
+        line-height: 46rpx;
+        text-indent:90rpx;
+        text-align:left;
+        margin-bottom: 10rpx;
+        .more{
+          .arrow_down{
+            width: 30rpx;
+            height: 20rpx;
+            margin-left: 250rpx;
+          }
+        }
+      }
+    }
+    .schoolOtherInfo{
+      background-color: #fff;
+      view{
+        height: 120rpx;
+        font-size: 25rpx;
+        padding-left: 20rpx;
+        line-height: 120rpx;
+        border-top: 1rpx solid #dcdcdc;
+        position: relative;
+        .arrow_right{
+          width: 20rpx;
+          height: 30rpx;
+          position: absolute;
+          top: 50rpx;
+          right: 30rpx;
+        }
+      }
+    }
+  }
+  .plan{
+    background-color: #fff;
+    &-title{
+      display: flex;
+      height: 100rpx;
+      line-height: 100rpx;
+      border-bottom: 1rpx solid #dcdcdc;
+      &-name{
+        font-size: 32rpx;
+        font-weight: 600;
+        width: 270rpx;
+        padding-left: 20rpx;
+      }
+      &-picker{
+        display: flex;
+        justify-content: space-around;
+        width: 460rpx;
+        picker{
+          font-size: 24rpx;
+          border: 1rpx solid #dcdcdc;
+          width: 182rpx;
+          height: 58rpx;
+          line-height: 58rpx;
+          text-align: center;
+          margin-top: 20rpx;
+          position: relative;
+        }
+      }
+    }
+    &-table{
+      &-head,
+      &-body{
+        height: 65rpx;
+        line-height: 65rpx;
+        text-align: center;
+        color: #999;
+        font-size: 26rpx;
+        background-color: #f5f5f5;
+        &-line{
+          border-bottom: 1rpx solid #dcdcdc;
+          display: flex;
+          &-num,
+          &-plan{
+            width: 144rpx;
+          }
+          &-sub{
+            width: 462rpx;
+            border-left: 1rpx solid #dcdcdc;
+            border-right: 1rpx solid #dcdcdc;
+          }
+        }
+      }
+      &-body{
+        background-color: #fff;
+        color: #333;
+        border-top: 1rpx solid #dcdcdc;
+      }
+    }
+  }
+  .schoolView{
+    background-color: #fff;
+    height: 100%;
+    // padding: 10rpx;
+    // display: flex;
+    // flex-wrap: wrap;
+    .flexBox{
+      display:flex;
+      flex-wrap:wrap;
+      position:absolute;
+      top:10rpx;
+      left:10rpx
+    }
+    .schoolViewBox{
+      width: 223rpx;
+      height: 223rpx;
+      margin: 10rpx;
+      background-color: #eee;
+    }
+    &-img{
+      width: 223rpx;
+      height: 223rpx;
+    }
+  }
+  .arrow{
+    border-top: 8rpx solid #999;
+    border-left: 8rpx solid  transparent;
+    border-right: 8rpx solid transparent;
+    border-bottom: 8rpx solid transparent;
+    position: absolute;
+    bottom: 15rpx;
+    right: 20rpx;
+  }
+  .arrowActive{
+    border-top-color: transparent;
+    border-bottom-color: #5ba8ff;
+  }
+  .noneBor{
+    border: none!important;
+  }
+  .emptyTip{
+    font-size: 28rpx;
+    color: #5aa9ff;
+    text-align: center;
+    line-height: 38rpx;
+    padding: 50rpx 35rpx;
+    background-color: #d1f2ff;
+  }
+}
+</style>

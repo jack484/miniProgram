@@ -1,0 +1,181 @@
+<template>
+  <view class="interest">
+    <view class="interest-result">
+      <view class="interest-title">
+        <text class="title-t">{{resultData.title}}</text>
+        <text class="title-b">人格</text>
+      </view>
+      <view class="interest-main">
+        <view class="fourLen">
+          <text class="textColor">性格分析：</text>
+          <text>{{resultData.xingg}}</text>
+        </view>
+        <view class="twoLen">
+          <text class="textColor">专业定位：</text>
+          <text>{{resultData.zhuany}}</text>
+        </view>
+        <view class="twoLen">
+          <text class="textColor">主要职业：</text>
+          <text>{{resultData.zhiy}}</text>
+        </view>
+      </view>
+      <view class="interest-btn" bindtap="goToDetail">
+        <image wx:if="{{imageUrl}}" src="{{imageUrl}}/img/yd/xingge/testBtn.png"></image>
+        <text>查看完整结果</text>
+      </view>
+    </view>
+    <view class="interest-gift" bindtap="goToLucky">
+      <image wx:if="{{imageUrl}}" src="{{imageUrl}}/img/yd/xingge/gift.png"></image>
+      <text>限时抽奖</text>
+    </view>
+ </view>
+</template>
+
+
+<script>
+  import wepy from 'wepy'
+  import results from '../utils/testResult'
+  import api from '../api/api'
+  export default class interestResult extends wepy.page {
+    config = {
+      navigationBarTitleText: '测试结果',
+      navigationBarBackgroundColor: '#fff',
+      navigationBarTextStyle: 'black'
+    }
+    data = {
+      resultData: '',
+      imageUrl: api.imageUrl,
+      uid: '',
+      bindPhone: false
+    }
+    methods = {
+      goToDetail() {
+        wepy.navigateTo({url: '/pages/interestResultDetail'})
+      },
+      goToLucky() {
+        if (this.bindPhone) {
+          wepy.navigateTo({ url: '/pages/lucky' })
+        } else {
+          wepy.navigateTo({ url: '/pages/phone' })
+        }
+      }
+    }
+    onLoad() {
+      this.uid = wepy.getStorageSync('uid')
+      var isbind = wepy.getStorageSync('bindPhone')
+      if (isbind) {
+        this.bindPhone = true
+        this.$apply()
+      }
+      this.getResult()
+    }
+    // 拉取用户测试结果
+    getResult() {
+      api.getInterestResult().then(res => {
+        console.log(res, '结果')
+        if (res.code === '200') {
+          let _result = res.extraData.result
+          this.resultData = results.getInterestResult(_result)
+          this.$apply()
+        }
+      })
+    }
+    // 转发
+    onShareAppMessage(res) {
+      return {
+        title: '测性格找专业',
+        path: `/pages/authorize_new?fromPage=interestIndex&shareId=${this.uid}`,
+        imageUrl: '../icon/shareBg.jpg'
+      }
+    }
+  }
+</script>
+
+<style lang="less" scoped>
+  .interest {
+    width: 750rpx;
+    height:100vh;
+    background-color:#f2f4f7;
+    padding-top:30rpx;
+    &-result{
+      width: 690rpx;
+      height:745rpx;
+      background-color:#fff;
+      margin: 0 auto;
+      box-shadow:0 10rpx 20rpx rgb(221, 220, 220);
+      .interest-title{
+        padding: 40rpx 35rpx;
+        border-bottom: 1px solid #eee;
+        color:#333;
+        .title-t{
+          font-size: 36rpx;
+          font-weight: 500;
+          margin-right:20rpx;
+        }
+        .title-b{
+          font-size: 28rpx;
+        }
+      }
+      .interest-main{
+        padding: 40rpx 35rpx 20rpx;
+        font-size: 26rpx;
+        color:#666;
+        view{
+          line-height: 40rpx;
+          margin-bottom:30rpx;
+          overflow: hidden;
+          text-overflow:ellipsis;//文本溢出显示省略号
+          display: -webkit-box;
+          -webkit-box-orient: vertical;
+          &.fourLen{
+            -webkit-line-clamp: 4;
+          }
+          &.twoLen{
+            -webkit-line-clamp: 2;
+          }
+            // width:130px;
+          .textColor{
+            color: #5ba8ff;
+          }
+        }
+      }
+      .interest-btn{
+        position: relative;
+        image{
+          width:410rpx;
+          height:140rpx;
+          margin-left:140rpx;
+        }
+        text{
+            position: absolute;
+            color:#fff;
+            font-size: 30rpx;
+            left: 260rpx;
+            top:40rpx;
+        }
+      }
+    }
+    &-gift{
+      width: 710rpx;
+      height: 140rpx;
+      margin-left: 20rpx;
+      position: relative;
+      margin-top: 150rpx;
+      vertical-align: top;
+    //   position: fixed;
+    //   left: 20rpx;
+    //   bottom:160rpx;
+      image{
+        width: 710rpx;
+        height: 140rpx;
+      }
+      text{
+        position: absolute;
+        left: 300rpx;
+        top:40rpx;
+        color:#fff;
+        font-size: 30rpx;
+      }
+    }
+  }
+</style>

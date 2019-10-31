@@ -1,0 +1,302 @@
+<template>
+  <view class="search">
+    <!-- 搜索框 -->
+    <view class="search-section">
+      <view class="search-pancel">
+        <image src='../icon/search.png' class="icon-search"/>
+        <image src='../icon/delect_icon@3x.png' class="icon-close" wx:if="{{keyWord}}" bind:tap='clearKeyWord'/>
+        <input class="search-input" placeholder="搜索大学" value='{{keyWord}}' bindblur='searchBlur' bindinput='searchInput' focus type='search'/>
+        <view class="search-button" bind:tap='btnSearch'>搜索</view>
+      </view>
+    </view>
+    <!-- 历史记录提示 -->
+    <view class="searchHistory" wx:if='{{!schoolList.length}}'>历史记录</view>
+
+    <!-- 搜索体 -->
+    <scroll-view scroll-y="true" style="white-space: nowrap;width: 100%;height:88%;position:absolute; top:155rpx; left:0rpx;">
+      <!-- 历史记录列表 -->
+      <view class="searchHistoryList" wx:if='{{!schoolList.length}}'>
+        <block wx:for='{{historyList}}' wx:key='index'>
+          <view class="searchHistoryListItem" bindtap='enterValue({{historyList[historyList.length-1-index]}})'>
+            <image src='../icon/search.png' class="icon-search" />
+            <image src='../icon/gray_arrow_rignt@3x.png' class="icon-right"/>
+            {{historyList[historyList.length-1-index]}}
+          </view>
+        </block>
+        <view class="clearSearchHistory" wx:if='{{historyList.length}}' bindtap='clearAllHistory'>
+          清除历史记录
+        </view>
+        <view class="noHistory" wx:if='{{!historyList.length}}'>暂无搜索历史</view>
+      </view>
+      <!-- 模糊搜索展示列表 -->
+      <view class="searchHistoryList">
+        <block wx:for='{{schoolList}}' wx:key='index'>
+          <view class="searchHistoryListItem" bind:tap='jumpToSchool({{item}})'>
+            <image src='../icon/search.png' class="icon-search" />
+            <image src='../icon/gray_arrow_rignt@3x.png' class="icon-right"/>
+            {{item.name}}
+          </view>
+        </block>
+        <view class="emptyTip" wx:if='{{!schoolList}}'>暂无符合的院校</view>
+      </view>
+    </scroll-view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+
+import api from '../api/api'
+
+import com from '../utils/common'
+
+export default class SearchSchool extends wepy.page {
+  onLoad() {
+    this.kq = this.$parent.globalData.kq
+    this.KQname = this.$parent.globalData.kqname
+    this.historyList = wepy.getStorageSync('schoolHistory')
+  }
+  data = {
+    kq: '',
+    KQname: '',
+    historyList: [],
+    schoolList: [],
+    keyWord: '',
+    tip: false
+  }
+  methods = {
+    clearKeyWord() {
+      this.keyWord = ''
+    },
+    // 跳转到学校,保存本地浏览记录
+    jumpToSchool(schoolInfo) {
+      wepy.showLoading({
+        title: '搜索学校',
+        mask: true
+      }).then(() => {
+        wepy.navigateTo({ url: `/pages/schoolDetails?name=${schoolInfo.name}&cid=${schoolInfo.cid}&is211=${schoolInfo.is211}&is985=${schoolInfo.is985}&typeid=${schoolInfo.typeid}&level=${schoolInfo.level}&img=${schoolInfo.img}&kq=${this.kq}&kqname=${this.KQname}` })
+        wepy.hideLoading()
+        this.schoolList = []
+      })
+    },
+    // 输入框失焦触发
+    searchBlur(e) {
+      this.keyWord = e.detail.value
+      // 将历史记录存储
+      if (!this.historyList) {
+        this.historyList = []
+      }
+      if (this.keyWord !== '') {
+        this.historyList.push(this.keyWord)
+      }
+      this.historyList = Array.from(new Set(this.historyList))
+      wepy.setStorageSync('schoolHistory', this.historyList)
+    },
+    // 输入框值发生变化触发--匹配出学校
+    searchInput(e) {
+      // console.log(e.detail.value, 'input')
+      this.keyWord = e.detail.value
+      // 如果没有关键字就将学校清空
+      if (this.keyWord === '') {
+        this.schoolList = []
+      }
+      this.searchKeyWords(this.keyWord)
+    },
+    // 点击可以进行搜索功能
+    enterValue(value) {
+      console.log(value)
+      this.keyWord = value
+      this.searchKeyWords(this.keyWord)
+    },
+    // 清除历史记录
+    clearAllHistory() {
+      wepy.setStorageSync('schoolHistory', [])
+      this.historyList = []
+    },
+    // 按钮的搜索功能---匹配出跟首页一样的学校列表
+    btnSearch() {
+      if (this.keyWord) {
+        wepy.navigateTo({ url: `/pages/searchSchoolDesc?keyWord=${this.keyWord}` })
+      } else {
+        wepy.showToast({
+          title: '请输入大学',
+          icon: 'none',
+          duration: 2000,
+          mask: false
+        })
+      }
+    }
+  }
+  // 关键字搜索
+  searchKeyWords(value) {
+    api.searchKeyWord({
+      data: {
+        kw: value,
+        kq: this.kq
+      }
+    }).then(res => {
+      console.log(res, 'bulr')
+      if (res.code === '200') {
+        if (res.extraData === []) {
+          this.tip = !this.tip
+        }
+        for (let i = 0; i < res.extraData.length; i++) {
+          res.extraData[i].typeid = com.filterSchoolType(res.extraData[i].typeid)
+        }
+        this.schoolList = res.extraData
+        this.$parent.globalData.schoolList = this.schoolList
+        this.$apply()
+      }
+    })
+  }
+}
+</script>
+<style lang="less" scoped>
+.search-section{
+  height: 110rpx;
+  background-color: #5aa9ff;
+  padding: 20rpx 0;
+  box-sizing: border-box;
+  .search-pancel{
+    display: flex;
+    .search-input{
+      width: 550rpx;
+      background-color: #fff;
+      height: 70rpx;
+      font-size: 30rpx;
+      color: #999;
+      border-radius: 35rpx;
+      padding-left: 60rpx;
+      margin-left: 20rpx;
+    }
+    .icon-search{
+      width: 30rpx;
+      height: 30rpx;
+      position: absolute;
+      top: 39rpx;
+      left: 40rpx;
+    }
+    .search-button{
+      width: 120rpx;
+      text-align: center;
+      border: none;
+      color: #fff;
+      background-color: #5aa9ff;
+      height: 70rpx;
+      line-height: 70rpx;
+      font-size: 26rpx;
+    }
+  }
+}
+.searchHistory{
+  height: 55rpx;
+  line-height: 55rpx;
+  padding-left: 20rpx;
+  font-size: 26rpx;
+  background-color: #f2f5f7;
+  color: #999;
+  position: relative;
+}
+.searchHistoryList{
+  .searchHistoryListItem{
+    height: 100rpx;
+    line-height: 100rpx;
+    border-bottom: 1rpx solid #dcdcdc;
+    font-size: 26rpx;
+    padding-left: 70rpx;
+    position: relative;
+    .icon-search{
+      width: 30rpx;
+      height: 30rpx;
+      position: absolute;
+      top: 34rpx;
+      left: 20rpx;
+    }
+    .icon-right{
+      width: 20rpx;
+      height: 40rpx;
+      position: absolute;
+      top: 30rpx;
+      right: 20rpx;
+    }
+  }
+}
+.clearSearchHistory,
+.tip{
+  height: 125rpx;
+  line-height: 125rpx;
+  font-size: 26rpx;
+  text-align: center;
+  color: #999;
+  border-bottom: 1rpx solid #dcdcdc;
+}
+.schoolList{
+  background-color: #f5f5f5;
+  .schoolInfo{
+    background-color:#fff;
+    width: 750rpx;
+    height: 130rpx;
+    margin-bottom: 10rpx;
+    display: flex;
+    position: relative;
+    .Info_left{
+      width: 130rpx;
+      height: 130rpx;
+      .schoolLogo{
+        width: 90rpx;
+        height: 90rpx;
+        margin: 20rpx;
+      }
+    }
+    .Info_right{
+      width: 620rpx;
+      height: 120rpx;
+      font-size: 24rpx;
+      .schoolName{
+        font-size: 34rpx;
+        height: 75rpx;
+        line-height: 75rpx;
+        color: #333;
+      }
+      .schoolTags{
+        height: 55rpx;
+        .tag{
+          padding: 5rpx 10rpx;
+          margin-right: 16rpx;
+          color: #999;
+        }
+        .keyTag{
+          background-color: #5ba8ff;
+          color: #fff;
+          border-radius: 10rpx;
+        }
+      }
+      .schoolCity{
+        position: absolute;
+        bottom: 20rpx;
+        right: 20rpx;
+        color: #999;
+      }
+    }
+  }
+}
+.icon-close{
+  position: absolute;
+  right: 140rpx;
+  top: 30rpx;
+  width: 50rpx;
+  height: 50rpx;
+  z-index: 10;
+}
+.noHistory{
+  width: 750rpx;
+  height: 100rpx;
+  text-align: center;
+  line-height: 100rpx;
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  font-size: 28rpx;
+  color: #999;
+}
+</style>

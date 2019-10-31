@@ -1,0 +1,297 @@
+<style lang="less">
+.address{
+  border-top: 1rpx solid #dcdcdc;
+  background-color: #f5f5f5;
+  height: 100vh;
+  box-sizing: border-box;
+  &-info{
+    padding: 0 25rpx;
+    margin-bottom: 20rpx;
+    background-color: #fff;
+    font-size: 26rpx;
+    &-content{
+      height: 172rpx;
+      border-bottom: 1rpx solid #dcdcdc;
+      padding-left: 80rpx;
+      padding-top: 20rpx;
+      position: relative;
+      overflow: hidden;
+      &-base{
+        font-size: 28rpx;
+        color: #333;
+        height: 48rpx;
+        line-height: 48rpx;
+      }
+      &-address{
+        color: #999;
+        line-height: 46rpx;
+        height: 92rpx;
+        overflow: hidden;
+      }
+      &-name{
+        margin-right: 25rpx;
+      }
+      .icon-dizhi{
+        width: 52rpx;
+        height: 58rpx;
+        position: absolute;
+        top:50%;
+        transform: translateY(-50%);
+        left: 5rpx;
+      }
+    }
+    &-handle{
+      height: 80rpx;
+      line-height: 80rpx;
+      color: #999;
+      position: relative;
+      view{
+        position: absolute;
+        top: 0;
+      }
+      .setting{
+        left: 15rpx;
+        .icon-selected{
+          width: 24rpx;
+          height: 24rpx;
+          margin-right: 10rpx;
+        }
+        .selected{
+          color: #13a78a;
+        }
+      }
+      .edit{
+        padding: 0 22rpx;
+        right: 75rpx;
+      }
+      .delete{
+        padding-left: 22rpx;
+        right: 0;
+      }
+    }
+  }
+  &-addNew{
+    background-color: #19a88f;
+    padding: 0;
+    line-height: 80rpx;
+    width: 600rpx;
+    height: 80rpx;
+    position: fixed;
+    bottom: 50rpx;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 28rpx;
+    color: #fff;
+  }
+  .emptyTip{
+    text-align: center;
+    height: 100rpx;
+    line-height: 100rpx;
+    width: 100%;
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    font-size: 28rpx;
+    color: #999;
+  }
+  .test{
+    opacity: 0;
+  }
+}
+</style>
+<template>
+  <view class="address">
+    <scroll-view scroll-y="true" style="width: 100%;height:86%;position:absolute; top:0rpx; left:0rpx;">
+      <view class="addressList">
+        <block wx:for="{{addressArr}}" wx:key="index">
+          <view class="address-info" bindtap='payAddressChoose({{item}})'>
+            <view class="address-info-content">
+              <view class="address-info-content-base">
+                <image src='../images/address_green.png' wx:if="{{item.checked == 1}}" class="icon-dizhi"/>
+                <image src='../images/address_grey.png' wx:if="{{item.checked == 0}}" class="icon-dizhi"/>
+                <text class="address-info-content-name">{{item.name}}</text>
+                <text class="address-info-content-phone">{{item.phone}}</text>
+              </view>
+              <view class="address-info-content-address">{{item.all}}</view>
+            </view>
+            <view class="address-info-handle">
+              <view class="setting" catchtap='setDefaultAddress({{item.id}},{{index}})'>
+                <image src='../images/no_check.png' wx:if="{{item.checked == 0}}" class="icon-selected"/>
+                <image src='../images/checked.png' wx:if="{{item.checked == 1}}" class="icon-selected"/>
+                <text wx:if="{{item.checked == 0}}">设为默认地址</text>
+                <text wx:if="{{item.checked == 1}}" class="selected">已设为默认地址</text>
+              </view>
+              <view class="edit" catchtap='editAddress({{item}},{{index}})'>编辑</view>
+              <view class="delete" catchtap='showDelAddress({{item.id}})'>删除</view>
+            </view>
+          </view>
+        </block>
+      </view>
+      <view class="emptyTip {{addressArr.length == 0 ? '' : 'test'}}" wx:if='{{addressArr.length == 0}}'>请添加收货地址</view>
+    </scroll-view>
+    <!-- 删除对话框 -->
+    <i-modal visible="{{ isShowDel }}" bindclick='delAddress' actions="{{action}}">
+      <view>确定要删除该地址吗</view>
+    </i-modal>
+    <button class="address-addNew" bindtap='jumpToAddNew'>新增收货地址</button>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  import api from '../api/api'
+
+  import com from '../utils/common'
+
+  export default class Address extends wepy.page {
+    onShow() {
+      this.session3rd = wepy.getStorageSync('session3rd')
+      // 读取用户地址列表
+      this.doGetUserAddress(this.session3rd)
+
+      // 对默认地址进行置顶
+      for (let j = 0; j < this.addressArr.length; j++) {
+        if (this.addressArr[j].isDefault) {
+          let temp = this.addressArr.splice(j, 1)
+          this.addressArr.unshift(temp[0])
+        }
+      }
+    }
+    onLoad(opt) {
+      this.type = opt.type
+      console.log(opt)
+      if (opt.type === 'pay') {
+        wepy.setNavigationBarTitle({ title: '选择收货地址' })
+      }
+    }
+    config = {
+      navigationBarTitleText: '收货地址',
+      'usingComponents': {
+        'i-modal': '../components/iView-components/modal/index'
+      }
+    }
+    data = {
+      session3rd: '',
+      type: '',
+      payAddress: '',
+      addressArr: [],
+      isShowDel: false,
+      action: [
+        {color: '#999', name: '取消'},
+        {color: '#13a78a', name: '确定'}
+      ],
+      delItem: '',
+      page: 1
+    }
+    methods = {
+      // 跳转到新增地址
+      jumpToAddNew() {
+        wepy.navigateTo({ url: '/pages/newAddress' })
+      },
+      // 设置默认地址
+      setDefaultAddress(id, index) {
+        let title = '设置成功'
+        if (this.addressArr[index].checked === '1') {
+          title = '已为默认地址!'
+        } else {
+          this.doSetDefaultAddr(this.session3rd, id)
+          this.doGetUserAddress(this.session3rd, this.page)
+        }
+        wepy.showToast({
+          title: title,
+          icon: 'none',
+          duration: 2000,
+          mask: false
+        })
+      },
+      // 删除地址展示
+      showDelAddress(index) {
+        console.log(index)
+        this.isShowDel = true
+        this.delItem = index
+      },
+      // 删除地址
+      delAddress({ detail }) {
+        this.isShowDel = false
+        if (detail.index === 1) {
+          this.doUserDelAddress(this.delItem, this.session3rd)
+          this.doGetUserAddress(this.session3rd, this.page)
+        }
+      },
+      // 编辑地址
+      editAddress(item, index) {
+        wepy.navigateTo({ url: `/pages/newAddress?name=${item.name}&phone=${item.phone}&addressDesc=${item.detlAddr}&province=${item.province}&city=${item.city}&area=${item.area}&id=${item.id}&checked=${item.checked}` })
+      },
+      // 支付页面选择地址
+      payAddressChoose(item) {
+        // 如果是从支付页面进来才执行
+        if (this.type === 'pay') {
+          this.payAddress = item
+          wepy.setStorageSync('payAddress', this.payAddress)
+          wepy.navigateBack({
+            delta: 1
+          })
+        }
+      }
+    }
+    // 获取用户地址
+    doGetUserAddress(session3rd, page = 1) {
+      api.getUserAddress({
+        data: {
+          session3rd: session3rd,
+          page: page
+        },
+        method: 'POST'
+      }).then(res => {
+        console.log(res, '获取地址')
+        if (res.code === '200') {
+          this.addressArr = res.extraData.info
+          this.addressArr.reverse()
+          // 拼接全部详细地址
+          for (let i = 0; i < this.addressArr.length; i++) {
+            com.getTheDescAddress(this.addressArr, i)
+            // 将默认地址置顶
+            if (this.addressArr[i].checked === '1') {
+              let temp = this.addressArr.splice(i, 1)
+              this.addressArr.unshift(temp[0])
+            }
+          }
+          this.$apply()
+        }
+      })
+    }
+    // 删除用户地址
+    doUserDelAddress(id, session3rd) {
+      api.userDelAddr({
+        data: {
+          id: id,
+          session3rd: session3rd
+        },
+        method: 'POST'
+      }).then(res => {
+        console.log(res, '删除地址')
+      })
+    }
+    // 设置用户默认地址
+    doSetDefaultAddr(session3rd, nid) {
+      let oid = ''
+      for (let i = 0; i < this.addressArr.length; i++) {
+        if (this.addressArr[i].checked === '1') {
+          oid = this.addressArr[i].id
+        }
+      }
+      api.userSetDefaultAddr({
+        data: {
+          session3rd: session3rd,
+          oid: oid,
+          nid: nid
+        },
+        method: 'POST'
+      }).then(res => {
+        console.log(res, '修改默认地址')
+      })
+    }
+  }
+</script>
